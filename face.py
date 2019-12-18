@@ -1,6 +1,5 @@
 import face_recognition
 from os import path
-import cv2
 import numpy as np
 import requests
 

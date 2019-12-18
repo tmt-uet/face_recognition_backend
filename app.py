@@ -6,7 +6,6 @@ import time
 from db import Database
 from face import Face
 import face_recognition
-from PIL import Image
 app = Flask(__name__)
 
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
