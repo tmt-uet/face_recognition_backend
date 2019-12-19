@@ -224,4 +224,5 @@ def recognize():
 
 
 # Run the app
-app.run()
+if __name__=="main":
+    app.run()
