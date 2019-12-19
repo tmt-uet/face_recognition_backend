@@ -80,11 +80,11 @@ def delete_user_by_id(user_id):
     # also delete all faces with user id
     app.db.delete('DELETE FROM faces WHERE faces.user_id = ?', [user_id])
 
-#   Route for Hompage
-@app.route('/', methods=['GET'])
-def page_home():
+# #   Route for Hompage
+# @app.route('/', methods=['GET'])
+# def page_home():
 
-    return render_template('index.html')
+#     return render_template('index.html')
 
 
 @app.route('/api', methods=['GET'])
