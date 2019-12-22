@@ -3,15 +3,17 @@ from werkzeug.utils import secure_filename
 from os import path, getcwd
 import os
 import time
-from db import Database
+from my_sql_db import Database
 from face import Face
 import face_recognition
-app = Flask(__name__)
+import mysql.connector
 
+
+app = Flask(__name__)
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.db = Database()
-# app.face = Face(app)
+app.face = Face(app)
 
 
 def success_handle(output, status=200, mimetype='application/json'):
@@ -25,7 +27,7 @@ def error_handle(error_message, status=500, mimetype='application/json'):
 def get_user_by_id(user_id):
     user = {}
     results = app.db.select(
-        'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.id = ?',
+        'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.id = %s',
         [user_id])
 
     index = 0
@@ -55,7 +57,7 @@ def get_user_by_id(user_id):
 
 def remove_path_image(user_id):
     try:
-        results = app.db.select('SELECT filename FROM faces WHERE faces.user_id=?', [user_id])
+        results = app.db.select('SELECT filename FROM faces WHERE faces.user_id= %s', [user_id])
         first_result = ''
         for row in results:
             # print(row)
@@ -75,16 +77,16 @@ def remove_path_image(user_id):
 
 
 # remove_path_image(10)
+
 def delete_user_by_id(user_id):
-    app.db.delete('DELETE FROM users WHERE users.id = ?', [user_id])
+    app.db.delete('DELETE FROM users WHERE users.id = %s', [user_id])
     # also delete all faces with user id
-    app.db.delete('DELETE FROM faces WHERE faces.user_id = ?', [user_id])
+    app.db.delete('DELETE FROM faces WHERE faces.user_id = %s', [user_id])
 
-# #   Route for Hompage
-# @app.route('/', methods=['GET'])
-# def page_home():
 
-#     return render_template('index.html')
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
 
 
 @app.route('/api', methods=['GET'])
@@ -133,12 +135,12 @@ def train():
 
                 # save to our sqlite database.db
                 created = int(time.time())
-                user_id = app.db.insert('INSERT INTO users(name, created) values(?,?)', [name, created])
+                user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
                 if user_id:
                     print("User saved in database", name, user_id)
 
                     # user has been save with user_id and now we need save faces table
-                    face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(?,?,?)', [user_id, filename, created])
+                    face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
                     if face_id:
                         print("face has been saved")
                         face_data = {"id": face_id, "file_name": filename, "created": created}
@@ -179,7 +181,6 @@ def train():
             # else:
             #     print("Something happend")
             #     return error_handle("An error inserting new user")
-
 
 # route for user profile
 @app.route('/api/users/<int:user_id>', methods=['GET', 'DELETE'])
@@ -224,5 +225,6 @@ def recognize():
 
 
 # Run the app
-if __name__=="main":
+
+if __name__ == '__main__':
     app.run()

@@ -1,12 +1,12 @@
-import urllib.request
-import numpy as np
-import time
-import requests
 import face_recognition
+from numpy import save
+from numpy import load
 
-face_image = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/43358318_1119791154838067_3691811964742270976_n.jpg')
-try:
-    face_image_encoding = face_recognition.face_encodings(face_image)[0]
-except:
-    print("not found face in image")
-# print(type(face_image_encoding))
+known_image = face_recognition.load_image_file("/home/tmt/Documents/face_recognition/my_app/storage/trained/beauty_20190915092027.jpg")
+biden_encoding = face_recognition.face_encodings(known_image)[0]
+print(biden_encoding)
+save('/home/tmt/Documents/face_recognition/my_app/storage/trained/data.npy', biden_encoding)
+
+
+data = load('/home/tmt/Documents/face_recognition/my_app/storage/trained/data.npy')
+print(data)
