@@ -1,0 +1,19 @@
+CREATE TABLE `recognize`.`users2` (
+    ->   `id` INT NOT NULL AUTO_INCREMENT,
+    ->   `name` VARCHAR(45) NOT NULL,
+    ->   `created` VARCHAR(45) NOT NULL,
+    ->   PRIMARY KEY (`id`),
+    ->   UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+CREATE TABLE `recognize`.`faces2` (
+    ->   `id` INT NOT NULL,
+    ->   `user_id` INT NOT NULL,
+    ->   `filename` VARCHAR(45) NOT NULL,
+    ->   `created` VARCHAR(45) NOT NULL,
+    ->   PRIMARY KEY (`id`),
+    ->   UNIQUE INDEX `idfaces2_UNIQUE` (`id` ASC),
+    ->   UNIQUE INDEX `faces2col_UNIQUE` (`user_id` ASC));
+
+
+
+
