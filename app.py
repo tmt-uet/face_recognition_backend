@@ -4,9 +4,11 @@ from os import path, getcwd
 import os
 import time
 from my_sql_db import Database
-from face import Face
+# from face import Face
 import face_recognition
 import mysql.connector
+
+# from gw_utility.logging import Logging
 
 
 app = Flask(__name__)
@@ -56,32 +58,11 @@ def get_user_by_id(user_id):
 
 
 def remove_path_image(user_id):
-    try:
-        results = app.db.select('SELECT filename FROM faces WHERE faces.user_id= %s', [user_id])
-        print("results", results[0][0])
-        print("type results", type(results[0]))
-        # first_result = ''
-        # for row in results:
-        #     # print(row)
-        #     first_result = row
-        #     # print(row)
-        # print(first_result)
-        # print(type(first_result[0]))
-        # remove_path = path.join(app.config['storage'], first_result[0])
-        remove_path = path.join(app.config['storage'], 'trained', results[0][0])
+    results = app.db.select('SELECT filename FROM faces WHERE faces.user_id= %s', [user_id])
+    print("errrrrrrrrrrrrroorrrrrrrrrrrrrrrrr")
+    remove_path = path.join(app.config['storage'], 'trained', results[0][0])
+    os.remove(remove_path)
 
-        print(remove_path)
-    except:
-        print("Not found result in Database")
-
-    try:
-        os.remove(remove_path)
-    except:
-        print("Path of image not found.")
-    # print("success")
-
-
-# remove_path_image(10)
 
 def delete_user_by_id(user_id):
     app.db.delete('DELETE FROM users WHERE users.id = %s', [user_id])
@@ -160,32 +141,12 @@ def train():
 
             except:
                 os.remove(image_path)
-                print("not found face in image")
-                output = json.dumps({"error": "Not found face in an image, try other images"})
+                # print("not found face in image")
+                # output = json.dumps({"error": "Not found face in an image, try other images"})
+                return(error_handle("Not found face in an image, try other images"))
 
             return success_handle(output)
 
-            # # let start save file to our storage
-
-            # # save to our sqlite database.db
-            # created = int(time.time())
-            # user_id = app.db.insert('INSERT INTO users(name, created) values(?,?)', [name, created])
-            # if user_id:
-            #     print("User saved in database", name, user_id)
-
-            #     # user has been save with user_id and now we need save faces table
-            #     face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(?,?,?)', [user_id, filename, created])
-            #     if face_id:
-            #         print("face has been saved")
-            #         face_data = {"id": face_id, "file_name": filename, "created": created}
-            #         return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-            #         return(success_handle(return_output))
-            #     else:
-            #         print("An error saving face image")
-            #         return(error_handle("An error saving face image"))
-            # else:
-            #     print("Something happend")
-            #     return error_handle("An error inserting new user")
 
 # route for user profile
 @app.route('/api/users/<int:user_id>', methods=['GET', 'DELETE'])
@@ -193,11 +154,15 @@ def user_profile(user_id):
     if request.method == 'GET':
         user = get_user_by_id(user_id)
         if user:
-            return success_handle(json.dumps(user), 200)
+            return success_handle(json.dumps(user))
         else:
-            return error_handle("User not found", 404)
+            return error_handle("User not found")
     if request.method == 'DELETE':
-        remove_path_image(user_id)
+        try:
+            remove_path_image(user_id)
+        except:
+            return error_handle("Not found result in database")
+
         delete_user_by_id(user_id)
 
         return success_handle(json.dumps({"deleted": True}))
