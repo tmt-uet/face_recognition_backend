@@ -105,12 +105,12 @@ def train():
             name = request.form['name']
 
             print("Information of that face", name)
-
-            print("File is allowed and will be saved in ", app.config['storage'])
             filename = secure_filename(file.filename)
             trained_storage = path.join(app.config['storage'], 'trained')
             image_path = path.join(trained_storage, filename)
             file.save(image_path)
+
+            print("File is allowed and will be saved in ", trained_storage)
 
             face_image = face_recognition.load_image_file(image_path)
             try:
