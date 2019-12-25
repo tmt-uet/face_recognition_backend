@@ -126,15 +126,15 @@ def train():
                     print("User saved in database", name, user_id)
 
                     # user has been save with user_id and now we need save faces table
-                    face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
-                    if face_id:
-                        print("face has been saved")
-                        face_data = {"id": face_id, "file_name": filename, "created": created}
-                        return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-                        return(success_handle(return_output))
-                    else:
-                        print("An error saving face image")
-                        return(error_handle("An error saving face image"))
+                    # face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
+                    # if face_id:
+                    #     print("face has been saved")
+                    #     face_data = {"id": face_id, "file_name": filename, "created": created}
+                    #     return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+                    #     return(success_handle(return_output))
+                    # else:
+                    #     print("An error saving face image")
+                    #     return(error_handle("An error saving face image"))
                 else:
                     print("Something happend")
                     return error_handle("An error inserting new user")
