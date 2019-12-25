@@ -1,11 +1,11 @@
-CREATE TABLE `recognize`.`users2` (
+CREATE TABLE `recognize`.`users` (
     ->   `id` INT NOT NULL AUTO_INCREMENT,
     ->   `name` VARCHAR(45) NOT NULL,
     ->   `created` VARCHAR(45) NOT NULL,
     ->   PRIMARY KEY (`id`),
     ->   UNIQUE INDEX `id_UNIQUE` (`id` ASC));
 
-CREATE TABLE `recognize`.`faces2` (
+CREATE TABLE `recognize`.`faces` (
     ->   `id` INT NOT NULL,
     ->   `user_id` INT NOT NULL,
     ->   `filename` VARCHAR(45) NOT NULL,
@@ -15,5 +15,6 @@ CREATE TABLE `recognize`.`faces2` (
     ->   UNIQUE INDEX `faces2col_UNIQUE` (`user_id` ASC));
 
 
+CREATE TABLE `recognize2`.`faces` (`id` INT NOT NULL AUTO_INCREMENT,`user_id` INT(11) NOT NULL,`filename` VARCHAR(45) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC),UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC));
 
-
+CREATE TABLE `recognize2`.`users` (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCHAR(45) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC));

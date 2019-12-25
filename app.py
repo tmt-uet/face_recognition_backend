@@ -59,7 +59,7 @@ def get_user_by_id(user_id):
 
 def remove_path_image(user_id):
     results = app.db.select('SELECT filename FROM faces WHERE faces.user_id= %s', [user_id])
-    print("errrrrrrrrrrrrroorrrrrrrrrrrrrrrrr")
+    # print("errrrrrrrrrrrrroorrrrrrrrrrrrrrrrr")
     remove_path = path.join(app.config['storage'], 'trained', results[0][0])
     os.remove(remove_path)
 
@@ -126,15 +126,16 @@ def train():
                     print("User saved in database", name, user_id)
 
                     # user has been save with user_id and now we need save faces table
-                    # face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
-                    # if face_id:
-                    #     print("face has been saved")
-                    #     face_data = {"id": face_id, "file_name": filename, "created": created}
-                    #     return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-                    #     return(success_handle(return_output))
-                    # else:
-                    #     print("An error saving face image")
-                    #     return(error_handle("An error saving face image"))
+
+                    face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
+                    if face_id:
+                        print("face has been saved")
+                        face_data = {"id": face_id, "file_name": filename, "created": created}
+                        return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+                        return(success_handle(return_output))
+                    else:
+                        print("An error saving face image")
+                        return(error_handle("An error saving face image"))
                 else:
                     print("Something happend")
                     return error_handle("An error inserting new user")
@@ -161,8 +162,22 @@ def user_profile(user_id):
         try:
             remove_path_image(user_id)
         except:
-            return error_handle("Not found result in database")
+            return error_handle("Not found result in database or not found image")
 
+        delete_user_by_id(user_id)
+
+        return success_handle(json.dumps({"deleted": True}))
+
+# route for not found path image in storage
+@app.route('/api/remove_if_not_in_storage/<int:user_id>', methods=['GET', 'DELETE'])
+def users_not_path(user_id):
+    if request.method == 'GET':
+        user = get_user_by_id(user_id)
+        if user:
+            return success_handle(json.dumps(user))
+        else:
+            return error_handle("User not found")
+    if request.method == 'DELETE':
         delete_user_by_id(user_id)
 
         return success_handle(json.dumps({"deleted": True}))
@@ -198,4 +213,4 @@ def user_profile(user_id):
 # Run the app
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080)
