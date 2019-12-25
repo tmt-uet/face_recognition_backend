@@ -112,38 +112,38 @@ def train():
             image_path = path.join(trained_storage, filename)
             file.save(image_path)
 
-            # face_image = face_recognition.load_image_file(image_path)
-            # try:
-            #     face_image_encoding = face_recognition.face_encodings(face_image)[0]
-            #     print("found face in image")
+            face_image = face_recognition.load_image_file(image_path)
+            try:
+                face_image_encoding = face_recognition.face_encodings(face_image)[0]
+                print("found face in image")
 
-            #     # let start save file to our storage
+                # let start save file to our storage
 
-            #     # save to our sqlite database.db
-            #     created = int(time.time())
-            #     user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
-            #     if user_id:
-            #         print("User saved in database", name, user_id)
+                # save to our sqlite database.db
+                created = int(time.time())
+                user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
+                if user_id:
+                    print("User saved in database", name, user_id)
 
-            #         # user has been save with user_id and now we need save faces table
-            #         face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
-            #         if face_id:
-            #             print("face has been saved")
-            #             face_data = {"id": face_id, "file_name": filename, "created": created}
-            #             return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-            #             return(success_handle(return_output))
-            #         else:
-            #             print("An error saving face image")
-            #             return(error_handle("An error saving face image"))
-            #     else:
-            #         print("Something happend")
-            #         return error_handle("An error inserting new user")
+                    # user has been save with user_id and now we need save faces table
+                    face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
+                    if face_id:
+                        print("face has been saved")
+                        face_data = {"id": face_id, "file_name": filename, "created": created}
+                        return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+                        return(success_handle(return_output))
+                    else:
+                        print("An error saving face image")
+                        return(error_handle("An error saving face image"))
+                else:
+                    print("Something happend")
+                    return error_handle("An error inserting new user")
 
-            # except:
-            #     os.remove(image_path)
-            #     # print("not found face in image")
-            #     # output = json.dumps({"error": "Not found face in an image, try other images"})
-            #     return(error_handle("Not found face in an image, try other images"))
+            except:
+                os.remove(image_path)
+                # print("not found face in image")
+                # output = json.dumps({"error": "Not found face in an image, try other images"})
+                return(error_handle("Not found face in an image, try other images"))
 
             return success_handle(output)
 

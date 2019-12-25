@@ -2,7 +2,7 @@ import face_recognition
 from numpy import save
 from numpy import load
 import os
-known_image = face_recognition.load_image_file("/home/tmt/Documents/face/collection/TMT/beauty_20191009001401.jpg")
+known_image = face_recognition.load_image_file("/home/tmt/Documents/face_recognition/my_app/storage/trained/Trang1.jpg")
 biden_encoding = face_recognition.face_encodings(known_image)[0]
 print(biden_encoding)
 # save('/home/tmt/Documents/face_recognition/my_app/storage/trained/data.npy', biden_encoding)
