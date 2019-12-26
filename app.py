@@ -4,7 +4,7 @@ from os import path, getcwd
 import os
 import time
 from my_sql_db import Database
-# from face_recog import Face
+from face_recog import Face
 import face_recognition
 import mysql.connector
 
@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.db = Database()
-# app.face = Face(app)
+app.face = Face(app)
 
 
 def success_handle(output, status=200, mimetype='application/json'):
@@ -191,31 +191,66 @@ def users_not_path(name):
 
 
 # router for recognize a unknown face
-# @app.route('/api/recognize', methods=['POST'])
-# def recognize():
-#     if 'file' not in request.files:
-#         return error_handle("Image is required")
-#     else:
-#         file = request.files['file']
-#         # file extension valiate
-#         if file.mimetype not in app.config['file_allowed']:
-#             return error_handle("File extension is not allowed")
-#         else:
+@app.route('/api/recognize', methods=['POST'])
+def recognize():
+    output = json.dumps({"success": True})
 
-#             filename = secure_filename(file.filename)
-#             unknown_storage = path.join(app.config["storage"], 'unknown')
-#             file_path = path.join(unknown_storage, filename)
-#             file.save(file_path)
+    if 'file' not in request.files:
 
-#             user_id = app.face.recognize(filename)
-#             if user_id:
-#                 user = get_user_by_id(user_id)
-#                 message = {"message": "Hey we found {0} matched with your face image".format(user["name"]),
-#                            "user": user}
-#                 return success_handle(json.dumps(message))
-#             else:
+        print("Not file in request")
+        return error_handle("Not file in request")
+    else:
 
-#                 return error_handle("Sorry we can not found any people matched with your face image, try another image")
+        print("File request", request.files)
+        file = request.files['file']
+
+        if file.mimetype not in app.config['file_allowed']:
+
+            print("File extension is not allowed")
+
+            return error_handle("We are only allow upload file with *.png , *.jpg")
+        else:
+
+            # get name in form data
+            name = request.form['name']
+
+            print("Information of that image", name)
+            filename = secure_filename(file.filename)
+            unknown_storage = path.join(app.config['storage'], 'unknown')
+            unknown_image_path = path.join(unknown_storage, filename)
+            file.save(unknown_image_path)
+            print("File is allowed and will be saved in ", unknown_storage)
+
+            face_image = face_recognition.load_image_file(unknown_image_path)
+            try:
+                face_image_encoding = face_recognition.face_encodings(face_image)[0]
+                print("found face in image")
+
+                # return success_handle(output)
+            except Exception as e:
+                print(e)
+                os.remove(unknown_image_path)
+                returnerror_handle("Not found face in an image, try other images")
+
+            try:
+                confirm = app.face.recognize(name, unknown_image_path)
+                if confirm == True:
+                    return success_handle(json.dumps({"message": "Valid image"}))
+                else:
+                    return success_handle(json.dumps({"message": "Invalid image"}))
+            except Exception as e:
+                print(e)
+                return error_handle("Not found image of account in database")
+
+            return success_handle(output)
+            # if user_id:
+            #     user = get_user_by_id(user_id)
+            #     message = {"message": "Hey we found {0} matched with your face image".format(user["name"]),
+            #                "user": user}
+            #     return success_handle(json.dumps(message))
+            # else:
+
+            #     return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
 
 # Run the app
