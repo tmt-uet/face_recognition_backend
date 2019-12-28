@@ -238,7 +238,7 @@ def recognize():
             except Exception as e:
                 print(e)
                 os.remove(unknown_image_path)
-                returnerror_handle("Not found face in an image, try other images")
+                return error_handle("Not found face in an image, try other images")
 
             try:
                 confirm = app.face.recognize(name, unknown_image_path)
