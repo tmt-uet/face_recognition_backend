@@ -23,7 +23,7 @@ import face_recognition
 import time
 start_time = time.time()
 
-known_image = face_recognition.load_image_file("/home/tmt/Documents/face_recognition/my_app/storage/beauty_20191009001401_test.jpg")
+known_image = face_recognition.load_image_file("/home/tmt/Documents/face_recognition/my_app/storage")
 # unknown_image = face_recognition.load_image_file("/home/tmt/Documents/face/collection/TMT/IMG_20190912_172925.jpg")
 unknown_image = face_recognition.load_image_file("/home/tmt/Documents/face/collection/Cong Anh/43358318_1119791154838067_3691811964742270976_n.jpg")
 

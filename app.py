@@ -7,7 +7,7 @@ from my_sql_db import Database
 from face_recog import Face
 import face_recognition
 import mysql.connector
-
+from face import Live_Face
 # from gw_utility.logging import Logging
 
 
@@ -16,6 +16,7 @@ app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.db = Database()
 app.face = Face(app)
+# app.live_face = Live_Face(app)
 
 
 def success_handle(output, status=200, mimetype='application/json'):
@@ -87,8 +88,10 @@ def homepage():
     output = json.dumps({"api": '1.0'})
     return success_handle(output)
 
+# @app.route('/api/identify',methos=['POST'])
+# def identify():
 
-@app.route('/api/train', methods=['POST'])
+@app.route('/api/add_user', methods=['POST'])
 def train():
     output = json.dumps({"success": True})
 
@@ -253,7 +256,15 @@ def recognize():
             #     return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
 
+@app.route('/api/live_recognition', methods=['POST'])
+def live_recognition():
+    app.live_face = Live_Face(app)
+
+    output = json.dumps({"success": True})
+    app.live_face.live_recognize()
+    return success_handle(output)
 # Run the app
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)

@@ -2,16 +2,19 @@ import face_recognition
 from os import path
 import numpy as np
 import requests
+import cv2
 
 
-class Face:
+class Live_Face:
     def __init__(self, app):
         self.storage = app.config["storage"]
         self.db = app.db
         self.faces = []  # storage all faces in caches array of face object
         self.known_encoding_faces = []  # faces data for recognition
         self.face_user_keys = {}
+        self.known_face_names = []
         self.load_all()
+
         # self.live_recognize()
 
     def load_user_by_index_key(self, index_key=0):
@@ -42,12 +45,15 @@ class Face:
 
     def load_all(self):
         print("First Work")
-        results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
+        # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
+        results = self.db.select(
+            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created  FROM users LEFT JOIN faces ON faces.user_id = users.id')
         for row in results:
             id = row[0]
             user_id = row[1]
             filename = row[2]
             created = row[3]
+            name = row[5]
             face = {
                 "id": row[0],
                 "user_id": user_id,
@@ -55,6 +61,9 @@ class Face:
                 "created": created
             }
             self.faces.append(face)
+            print('name ', name)
+            print('filename', filename)
+            self.known_face_names.append(name)
 
             face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
             face_image_encoding = face_recognition.face_encodings(face_image)[0]
@@ -91,17 +100,18 @@ class Face:
     def live_recognize(self):
 
         # video_capture = cv2.VideoCapture(0)
-        URL = "http://192.168.31.131:8080/shot.jpg"
+        URL = "http://192.168.1.10:8080/shot.jpg"
 
         face_locations = []
         face_encodings = []
         face_names = []
         process_this_frame = True
-        known_face_names = [
-            "Trang",
-            "Tung",
-            "Trung"
-        ]
+        # known_face_names = [
+        #     "Trang",
+        #     "Tung",
+        #     "Trung",
+        #     "Sinh"
+        # ]
         while True:
             # Grab a single frame of video
             img_resp = requests.get(URL)
@@ -133,15 +143,15 @@ class Face:
                     # # If a match was found in known_face_encodings, just use the first one.
                     # if True in matches:
                     #     first_match_index = matches.index(True)
-                    #     name = known_face_names[first_match_index]
+                    #     name = self.known_face_names[first_match_index]
 
                     # Or instead, use the known face with the smallest distance to the new face
                     face_distances = face_recognition.face_distance(self.known_encoding_faces, face_encoding)
                     best_match_index = np.argmin(face_distances)
 
                     if matches[best_match_index]:
-                        name = known_face_names[best_match_index]
-
+                        name = self.known_face_names[best_match_index]
+                    print('name', name)
                     face_names.append(name)
 
             process_this_frame = not process_this_frame
@@ -170,5 +180,5 @@ class Face:
                 break
 
         # Release handle to the webcam
-        video_capture.release()
+        # video_capture.release()
         cv2.destroyAllWindows()
