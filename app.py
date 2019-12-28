@@ -9,8 +9,11 @@ import face_recognition
 import mysql.connector
 from face import Live_Face
 # from gw_utility.logging import Logging
-
-
+# import Image
+import urllib
+from urllib.request import urlopen
+import io
+import requests
 app = Flask(__name__)
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
@@ -153,6 +156,65 @@ def train():
                 return error_handle("ERRORRRRRRRRRRRR")
             return success_handle(output)
 
+
+@app.route('/api/add_url_user', methods=['POST'])
+def add_url_user():
+    output = json.dumps({"success": True})
+    url = request.form['file']
+    page = requests.get(url)
+    created = int(time.time())
+
+    f_ext = os.path.splitext(url)[-1]
+    f_ext = '.jpg'
+    print(f_ext)
+    # f_name = '/home/tmt/Documents/face_recognition/my_app/storage/trained/img{}'.format(f_ext)
+    trained_storage = path.join(app.config['storage'], 'trained')
+    filename = str(created)+'.jpg'
+    image_path = path.join(trained_storage, filename)
+
+    with open(image_path, 'wb') as f:
+        f.write(page.content)
+
+    # get name in form data
+    name = request.form['name']
+
+    print("Information of that face", name)
+    # filename = secure_filename(file.filename)
+    # trained_storage = path.join(app.config['storage'], 'trained')
+    # image_path = path.join(trained_storage, filename)
+    # file.save(image_path)
+
+    print("File is allowed and will be saved in ", trained_storage)
+
+    face_image = face_recognition.load_image_file(image_path)
+    try:
+        face_image_encoding = face_recognition.face_encodings(face_image)[0]
+        print("found face in image")
+
+    except:
+        os.remove(image_path)
+        # print("not found face in image")
+        # output = json.dumps({"error": "Not found face in an image, try other images"})
+        return(error_handle("Not found face in an image, try other images"))
+    try:
+
+        # let start save file to our storage
+
+        # save to our sqlite database.db
+        created = int(time.time())
+        user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
+        print("user has been saved")
+
+        face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
+        print("face has been saved")
+        face_data = {"id": face_id, "file_name": filename, "created": created}
+        return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+
+        return(success_handle(return_output))
+    except Exception as e:
+        print(e)
+        return error_handle("ERRORRRRRRRRRRRR")
+    return success_handle(output)
 
 # route for user profile
 # @app.route('/api/users/<string:name>', methods=['GET', 'DELETE'])

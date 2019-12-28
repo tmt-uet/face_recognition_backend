@@ -13,7 +13,7 @@ class Database:
         )
         # create database
         cursor = self.connection2.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS recognize")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS recognize2")
         cursor.close()
 
         self.connection = mysql.connector.connect(
@@ -23,8 +23,8 @@ class Database:
             database="recognize"
         )
         cursor = self.connection.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`faces` (`id` INT NOT NULL AUTO_INCREMENT,`user_id` INT(11) NOT NULL,`filename` VARCHAR(500) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC),UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC));")
-        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`users` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(45) NOT NULL, `created` VARCHAR(45) NOT NULL, PRIMARY KEY(`id`), UNIQUE INDEX `id_UNIQUE` (`id` ASC));")
+        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`faces` (`id` INT NOT NULL AUTO_INCREMENT,`user_id` INT(11) NOT NULL,`filename` VARCHAR(500) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC));")
+        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`users` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(45) NOT NULL, `created` VARCHAR(45) NOT NULL, PRIMARY KEY(`id`))")
         cursor.close()
 
     def query(self, q, arg=()):

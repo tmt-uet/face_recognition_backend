@@ -18,3 +18,7 @@ CREATE TABLE `recognize`.`faces` (
 CREATE TABLE `recognize2`.`faces` (`id` INT NOT NULL AUTO_INCREMENT,`user_id` INT(11) NOT NULL,`filename` VARCHAR(45) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC),UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC));
 
 CREATE TABLE `recognize2`.`users` (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCHAR(45) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC));
+
+
+
+CREATE TABLE `recognize2`.`users` (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCHAR(45) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`));
