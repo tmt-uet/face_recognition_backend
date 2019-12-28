@@ -1,4 +1,4 @@
-from flask import Flask, json, Response, request, render_template
+from flask import Flask, json, Response, request, render_template, send_file
 from werkzeug.utils import secure_filename
 from os import path, getcwd
 import os
@@ -29,11 +29,11 @@ def error_handle(error_message, status=500, mimetype='application/json'):
 
 def get_user_by_name(name):
     print("get_user_by_name")
-    user_id = app.db.select('SELECT id from users WHERE name= %s', [name])[0][0]
+    # user_id = app.db.select('SELECT id from users WHERE name= %s', [name])[0][0]
     user = {}
     results = app.db.select(
-        'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.id = %s',
-        [user_id])
+        'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.name = %s',
+        [name])
 
     index = 0
     for row in results:
@@ -159,17 +159,19 @@ def train():
 @app.route('/api/users', methods=['GET', 'DELETE'])
 def user_profile():
     if request.method == 'GET':
-        name = request.form['name']
+        name = request.args.get('name')
         try:
 
             user = get_user_by_name(name)
-            return user
+            filename = user['faces'][0]['filename']
+            path_image = path.join(app.config['storage'], 'trained', filename)
+            return send_file(path_image, mimetype='image/jpg')
         except Exception as e:
             print(e)
             return error_handle("User not found")
 
     if request.method == 'DELETE':
-        name = request.form['name']
+        name = request.args.get('name')
         try:
             remove_path_image(name)
             delete_user_by_name(name)
@@ -243,9 +245,9 @@ def recognize():
             try:
                 confirm = app.face.recognize(name, unknown_image_path)
                 if confirm == True:
-                    return success_handle(json.dumps({"message": "Valid image"}))
+                    return success_handle(json.dumps({"message": "Valid"}))
                 else:
-                    return success_handle(json.dumps({"message": "Invalid image"}))
+                    return success_handle(json.dumps({"message": "Invalid"}))
             except Exception as e:
                 print(e)
                 return error_handle("Not found image of account in database")
