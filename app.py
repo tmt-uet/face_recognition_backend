@@ -91,6 +91,7 @@ def homepage():
 # @app.route('/api/identify',methos=['POST'])
 # def identify():
 
+
 @app.route('/api/add_user', methods=['POST'])
 def train():
     output = json.dumps({"success": True})
@@ -154,10 +155,13 @@ def train():
 
 
 # route for user profile
-@app.route('/api/users/<string:name>', methods=['GET', 'DELETE'])
-def user_profile(name):
+# @app.route('/api/users/<string:name>', methods=['GET', 'DELETE'])
+@app.route('/api/users', methods=['GET', 'DELETE'])
+def user_profile():
     if request.method == 'GET':
+        name = request.form['name']
         try:
+
             user = get_user_by_name(name)
             return user
         except Exception as e:
@@ -165,6 +169,7 @@ def user_profile(name):
             return error_handle("User not found")
 
     if request.method == 'DELETE':
+        name = request.form['name']
         try:
             remove_path_image(name)
             delete_user_by_name(name)
