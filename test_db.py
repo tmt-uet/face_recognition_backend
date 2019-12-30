@@ -11,7 +11,7 @@ name = 'Tung'
 # re = db.select('SELECT id from users WHERE name= %s', [name])[0][0]
 # # print(results[0][5])
 # print(results)
-check_exist = db.select('SELECT id from users WHERE name=%s', [name])
+check_exist = db.select('SELECT count(*) from users WHERE name=%s', [name])
 if (len(check_exist)) > 0:
     print("YES")
 print(len(check_exist))
