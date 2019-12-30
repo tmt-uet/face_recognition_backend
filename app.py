@@ -100,6 +100,7 @@ def add_user():
     output = json.dumps({"success": True})
     name = request.form['name']
     check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
+    created = int(time.time())
     print(check_exist)
     if (len(check_exist)) >= 1:
         print("User is exist")
@@ -124,7 +125,8 @@ def add_user():
             print("Information of that face", name)
             filename = secure_filename(file.filename)
             trained_storage = path.join(app.config['storage'], 'trained')
-            image_path = path.join(trained_storage, filename)
+            filename2 = str(created) + '.jpg'
+            image_path = path.join(trained_storage, filename2)
             file.save(image_path)
 
             print("File is allowed and will be saved in ", trained_storage)
@@ -146,13 +148,13 @@ def add_user():
                 # let start save file to our storage
 
                 # save to our sqlite database.db
-                created = int(time.time())
+
                 user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
                 print("user has been saved")
 
-                face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename, created])
+                face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename2, created])
                 print("face has been saved")
-                face_data = {"id": face_id, "file_name": filename, "created": created}
+                face_data = {"id": face_id, "file_name": filename2, "created": created}
                 return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
 
                 return(success_handle(return_output))
@@ -328,7 +330,6 @@ def recognize():
                 print(e)
                 os.remove(unknown_image_path)
                 return error_handle("Not found face in an image, try other images")
-            print(e)
 
             try:
                 confirm = app.face.recognize(name, unknown_image_path)
