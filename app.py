@@ -131,7 +131,9 @@ def train():
                 face_image_encoding = face_recognition.face_encodings(face_image)[0]
                 print("found face in image")
 
-            except:
+            except Exception as e:
+                print(e)
+
                 os.remove(image_path)
                 # print("not found face in image")
                 # output = json.dumps({"error": "Not found face in an image, try other images"})
@@ -179,7 +181,9 @@ def add_url_user():
     try:
         with open(image_path, 'wb') as f:
             f.write(page.content)
-    except:
+    except Exception as e:
+        print(e)
+
         return error_handle("URL isn't image")
     # get name in form data
     name = request.form['name']
@@ -259,14 +263,18 @@ def users_not_path():
         try:
             user = get_user_by_name(name)
             return user
-        except:
+        except Exception as e:
+            print(e)
+
             return error_handle("User not found")
     if request.method == 'DELETE':
         try:
             delete_user_by_name(name)
             return success_handle(json.dumps({"deleted": True}))
 
-        except:
+        except Exception as e:
+            print(e)
+
             return error_handle("Not found result in database")
 
 
@@ -311,6 +319,7 @@ def recognize():
                 print(e)
                 os.remove(unknown_image_path)
                 return error_handle("Not found face in an image, try other images")
+            print(e)
 
             try:
                 confirm = app.face.recognize(name, unknown_image_path)
