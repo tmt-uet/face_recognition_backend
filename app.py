@@ -96,8 +96,14 @@ def homepage():
 
 
 @app.route('/api/add_user', methods=['POST'])
-def train():
+def add_user():
     output = json.dumps({"success": True})
+    name = request.form['name']
+    check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
+    print(check_exist)
+    if (len(check_exist)) >= 1:
+        print("User is exist")
+        return error_handle("User is exist, you should change username")
 
     if 'file' not in request.files:
 
@@ -114,9 +120,6 @@ def train():
 
             return error_handle("We are only allow upload file with *.png , *.jpg")
         else:
-
-            # get name in form data
-            name = request.form['name']
 
             print("Information of that face", name)
             filename = secure_filename(file.filename)
@@ -165,8 +168,11 @@ def add_url_user():
     output = json.dumps({"success": True})
     url = request.form['file']
     name = request.form['name']
-    check_exist = app.db.select('SELECT count(*) from users WHERE name=%s', [name])
-    if (len(check_exist)) > 0:
+    check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
+    print(check_exist)
+
+    if (len(check_exist)) >= 1:
+        print("User is exist")
         return error_handle("User is exist, you should change username")
 
     page = requests.get(url)

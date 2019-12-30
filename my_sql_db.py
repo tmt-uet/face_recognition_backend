@@ -13,7 +13,7 @@ class Database:
         )
         # create database
         cursor = self.connection2.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS recognize2")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS recognize")
         cursor.close()
 
         self.connection = mysql.connector.connect(
