@@ -159,22 +159,28 @@ def train():
 
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
+
     output = json.dumps({"success": True})
     url = request.form['file']
+
     page = requests.get(url)
     created = int(time.time())
 
     f_ext = os.path.splitext(url)[-1]
-    f_ext = '.jpg'
     print(f_ext)
+    # f_ext = '.jpg'
+    # print(f_ext)
     # f_name = '/home/tmt/Documents/face_recognition/my_app/storage/trained/img{}'.format(f_ext)
     trained_storage = path.join(app.config['storage'], 'trained')
-    filename = str(created)+'.jpg'
+    # filename = str(created)+'.jpg'
+    filename = str(created)+str(f_ext)
+
     image_path = path.join(trained_storage, filename)
-
-    with open(image_path, 'wb') as f:
-        f.write(page.content)
-
+    try:
+        with open(image_path, 'wb') as f:
+            f.write(page.content)
+    except:
+        return error_handle("URL isn't image")
     # get name in form data
     name = request.form['name']
 
@@ -201,7 +207,7 @@ def add_url_user():
         # let start save file to our storage
 
         # save to our sqlite database.db
-        created = int(time.time())
+        # created = int(time.time())
         user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
         print("user has been saved")
 
@@ -220,8 +226,9 @@ def add_url_user():
 # @app.route('/api/users/<string:name>', methods=['GET', 'DELETE'])
 @app.route('/api/users', methods=['GET', 'DELETE'])
 def user_profile():
+    name = request.args.get('name')
+
     if request.method == 'GET':
-        name = request.args.get('name')
         try:
 
             user = get_user_by_name(name)
@@ -233,7 +240,6 @@ def user_profile():
             return error_handle("User not found")
 
     if request.method == 'DELETE':
-        name = request.args.get('name')
         try:
             remove_path_image(name)
             delete_user_by_name(name)
@@ -245,8 +251,10 @@ def user_profile():
 
 
 # route for not found path image in storage
-@app.route('/api/remove_if_not_in_storage/<string:name>', methods=['GET', 'DELETE'])
-def users_not_path(name):
+@app.route('/api/remove_if_not_in_storage', methods=['GET', 'DELETE'])
+def users_not_path():
+    name = request.args.get('name')
+
     if request.method == 'GET':
         try:
             user = get_user_by_name(name)
