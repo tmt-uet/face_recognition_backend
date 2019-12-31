@@ -95,6 +95,14 @@ def homepage():
 # def identify():
 
 
+def check_file_image(request_file):
+    if 'file' not in request_file:
+        return 1
+    file = request_file['file']
+    if file.mimetype not in app.config['file_allowed']:
+        return 2
+
+
 @app.route('/api/add_user', methods=['POST'])
 def add_user():
     output = json.dumps({"success": True})
@@ -102,66 +110,76 @@ def add_user():
     check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
     created = int(time.time())
     print(check_exist)
+    print('Checkkkkkkkkkkkkk', check_file_image(request.files))
+    print('request file', request.files)
     if (len(check_exist)) >= 1:
         print("User is exist")
         return error_handle("User is exist, you should change username")
 
-    if 'file' not in request.files:
+    # if 'file' not in request.files:
 
+    #     print("Not file in request")
+    #     return error_handle("Not file in request")
+    # else:
+
+    #     print("File request", request.files)
+    #     file = request.files['file']
+
+    #     if file.mimetype not in app.config['file_allowed']:
+
+    #         print("File extension is not allowed")
+
+    #         return error_handle("We are only allow upload file with *.png , *.jpg")
+    #     else:
+    flag_check = check_file_image(request.files)
+    if(flag_check == 1):
         print("Not file in request")
         return error_handle("Not file in request")
-    else:
+    if(flag_check == 2):
+        print("File extension is not allowed")
+        return error_handle("We are only allow upload file with *.png , *.jpg")
 
-        print("File request", request.files)
-        file = request.files['file']
+    file = request.files['file']
+    print("Information of that face", name)
+    filename = secure_filename(file.filename)
+    trained_storage = path.join(app.config['storage'], 'trained')
+    filename2 = str(created)+str(filename) + '.jpg'
+    image_path = path.join(trained_storage, filename2)
+    file.save(image_path)
 
-        if file.mimetype not in app.config['file_allowed']:
+    print("File is allowed and will be saved in ", trained_storage)
 
-            print("File extension is not allowed")
+    face_image = face_recognition.load_image_file(image_path)
+    try:
+        face_image_encoding = face_recognition.face_encodings(face_image)[0]
+        print("found face in image")
 
-            return error_handle("We are only allow upload file with *.png , *.jpg")
-        else:
+    except Exception as e:
+        print(e)
 
-            print("Information of that face", name)
-            filename = secure_filename(file.filename)
-            trained_storage = path.join(app.config['storage'], 'trained')
-            filename2 = str(created)+str(filename) + '.jpg'
-            image_path = path.join(trained_storage, filename2)
-            file.save(image_path)
+        os.remove(image_path)
+        # print("not found face in image")
+        # output = json.dumps({"error": "Not found face in an image, try other images"})
+        return(error_handle("Not found face in an image, try other images"))
+    try:
 
-            print("File is allowed and will be saved in ", trained_storage)
+        # let start save file to our storage
 
-            face_image = face_recognition.load_image_file(image_path)
-            try:
-                face_image_encoding = face_recognition.face_encodings(face_image)[0]
-                print("found face in image")
+        # save to our sqlite database.db
 
-            except Exception as e:
-                print(e)
+        user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
+        print("user has been saved")
 
-                os.remove(image_path)
-                # print("not found face in image")
-                # output = json.dumps({"error": "Not found face in an image, try other images"})
-                return(error_handle("Not found face in an image, try other images"))
-            try:
+        face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename2, created])
+        print("face has been saved")
+        face_data = {"id": face_id, "file_name": filename2, "created": created}
+        return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
 
-                # let start save file to our storage
-
-                # save to our sqlite database.db
-
-                user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created])
-                print("user has been saved")
-
-                face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename2, created])
-                print("face has been saved")
-                face_data = {"id": face_id, "file_name": filename2, "created": created}
-                return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-
-                return(success_handle(return_output))
-            except Exception as e:
-                print(e)
-                return error_handle("ERRORRRRRRRRRRRR")
-            return success_handle(output)
+        return(success_handle(return_output))
+    except Exception as e:
+        print(e)
+        return error_handle("ERRORRRRRRRRRRRR")
+    return success_handle(output)
 
 
 @app.route('/api/add_url_user', methods=['POST'])
