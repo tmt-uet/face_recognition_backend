@@ -32,7 +32,9 @@ class Face:
         known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
         unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location)[0]
 
-        print(type(face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0]))
+        compare_faces = face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0]
+        face_distance = face_recognition.face_distance([known_encoding], unknown_encoding)[0]
+        print(type(compare_faces))
 
-        print(face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0])
-        return face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0]
+        print(compare_faces)
+        return compare_faces, face_distance

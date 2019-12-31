@@ -125,7 +125,7 @@ def add_user():
             print("Information of that face", name)
             filename = secure_filename(file.filename)
             trained_storage = path.join(app.config['storage'], 'trained')
-            filename2 = str(created) + '.jpg'
+            filename2 = str(created)+str(filename) + '.jpg'
             image_path = path.join(trained_storage, filename2)
             file.save(image_path)
 
@@ -333,12 +333,14 @@ def recognize():
                 return error_handle("Not found face in an image, try other images")
 
             try:
-                confirm = app.face.recognize(name, unknown_image_path)
-                if confirm == True:
-                    return success_handle(json.dumps({"message": "Valid"}))
+                compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
+                os.remove(unknown_image_path)
+                if compare_faces == True:
+                    return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
                 else:
-                    return success_handle(json.dumps({"message": "Invalid"}))
+                    return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
             except Exception as e:
+                os.remove(unknown_image_path)
                 print(e)
                 return error_handle("Not found image of account in database")
 
