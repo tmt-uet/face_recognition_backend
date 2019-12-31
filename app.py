@@ -166,10 +166,19 @@ def add_user():
 
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
-
+    created = int(time.time())
     output = json.dumps({"success": True})
     url = request.form['file']
     name = request.form['name']
+
+    page = requests.get(url)
+
+    f_ext = os.path.splitext(url)[-1]
+    print(f_ext)
+
+    if str(f_ext) != '.jpg' and str(f_ext) != '.png':
+        return error_handle("URL isn't image")
+
     check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
     print(check_exist)
 
@@ -177,11 +186,6 @@ def add_url_user():
         print("User is exist")
         return error_handle("User is exist, you should change username")
 
-    page = requests.get(url)
-    created = int(time.time())
-
-    f_ext = os.path.splitext(url)[-1]
-    print(f_ext)
     # f_ext = '.jpg'
     # print(f_ext)
     # f_name = '/home/tmt/Documents/face_recognition/my_app/storage/trained/img{}'.format(f_ext)
@@ -190,13 +194,10 @@ def add_url_user():
     filename = str(created)+str(f_ext)
 
     image_path = path.join(trained_storage, filename)
-    try:
-        with open(image_path, 'wb') as f:
-            f.write(page.content)
-    except Exception as e:
-        print(e)
 
-        return error_handle("URL isn't image")
+    with open(image_path, 'wb') as f:
+        f.write(page.content)
+
     # get name in form data
 
     print("Information of that face", name)
