@@ -15,8 +15,13 @@ from urllib.request import urlopen
 import io
 import requests
 import shutil
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.config['trained'] = path.join(getcwd(), 'storage', 'trained')
@@ -405,12 +410,15 @@ def recognize():
         return error_handle("Not found face in an image, try other images")
 
     try:
-        compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
+        # compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
+        output = app.face.recognize(name, unknown_image_path)
+
         os.remove(unknown_image_path)
-        if compare_faces == True:
-            return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
-        else:
-            return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
+        return success_handle(output)
+        # if compare_faces == True:
+        #     return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
+        # else:
+        #     return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
     except Exception as e:
         os.remove(unknown_image_path)
         print(e)
