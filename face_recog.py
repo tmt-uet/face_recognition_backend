@@ -11,19 +11,22 @@ class Face:
 
     def get_path_image_in_db(self, name):
         # print(name)
-
+        path_image = []
         results = self.db.select(
             'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.name = %s',
             [name])
-        image_name = results[0][5]
-        path_image = path.join(self.storage, 'trained', image_name)
+
+        for i in range(len(results)):
+            image_name = results[i][5]
+            path_image.append(path.join(self.storage, 'trained', image_name))
 
         return path_image
 
     def recognize(self, name, unknown_image_path):
         known_path_image = self.get_path_image_in_db(name)
 
-        known_image = face_recognition.load_image_file(known_path_image)
+        known_image = face_recognition.load_image_file(known_path_image[0])
+        print(known_path_image[0])
         unknown_image = face_recognition.load_image_file(unknown_image_path)
 
         known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
