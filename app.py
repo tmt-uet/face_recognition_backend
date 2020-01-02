@@ -168,7 +168,7 @@ def add_user():
     file2 = request.files['file2']
 
     created3 = int(time.time())
-    file3 = request.files['file3']
+    # file3 = request.files['file3']
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
@@ -192,14 +192,14 @@ def add_user():
 
     flag_check_image_contain_face, filename_change1 = check_image_contain_face(name, file1, created1)
     flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, file2, created2)
-    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
+    # flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
 
     if flag_check_image_contain_face == 1:
         return error_handle("Not found face in first image, try other images")
     if flag_check_image_contain_face2 == 1:
         return error_handle("Not found face in second image, try other images")
-    if flag_check_image_contain_face3 == 1:
-        return error_handle("Not found face in third image, try other images")
+    # if flag_check_image_contain_face3 == 1:
+    #     return error_handle("Not found face in third image, try other images")
 
     try:
 
@@ -212,12 +212,14 @@ def add_user():
 
         face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change1, created1])
         face_id2 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change2, created2])
-        face_id3 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change3, created3])
+        # face_id3 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change3, created3])
 
         print("face has been saved")
+        # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
+        #              {"id": face_id2, "file_name": filename_change2, "created": created2},
+        #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
         face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
-                     {"id": face_id2, "file_name": filename_change2, "created": created2},
-                     {"id": face_id3, "file_name": filename_change3, "created": created3}]
+                {"id": face_id2, "file_name": filename_change2, "created": created2}]
 
         # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
         return_output = json.dumps(face_data)
