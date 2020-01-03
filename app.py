@@ -219,7 +219,7 @@ def add_user():
         #              {"id": face_id2, "file_name": filename_change2, "created": created2},
         #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
         face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
-                {"id": face_id2, "file_name": filename_change2, "created": created2}]
+                     {"id": face_id2, "file_name": filename_change2, "created": created2}]
 
         # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
         return_output = json.dumps(face_data)
@@ -288,11 +288,11 @@ def add_url_user():
     flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
 
     if flag_check_image_contain_face_add_url == 1:
-        return error_handle("Not found face in an image, try other images")
+        return error_handle("Not found face in first image, try other images")
     if flag_check_image_contain_face_add_url2 == 1:
-        return error_handle("Not found face in an image, try other images")
+        return error_handle("Not found face in second image, try other images")
     if flag_check_image_contain_face_add_url3 == 1:
-        return error_handle("Not found face in an image, try other images")
+        return error_handle("Not found face in third image, try other images")
 
     try:
 
@@ -332,7 +332,7 @@ def user_profile():
 
             user = get_user_by_name(name)
             filename = user['faces'][0]['filename']
-            path_image = path.join(app.config['storage'], 'trained', filename)
+            path_image = path.join(app.config['trained'], name, filename)
             return send_file(path_image, mimetype='image/jpg')
         except Exception as e:
             print(e)
