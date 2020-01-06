@@ -25,17 +25,18 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['file_allowed'] = ['image/png', 'image/jpeg']
 app.config['storage'] = path.join(getcwd(), 'storage')
 app.config['trained'] = path.join(getcwd(), 'storage', 'trained')
+app.config['unknown'] = path.join(getcwd(), 'storage', 'unknown')
 app.db = Database()
 app.face = Face(app)
 # app.live_face = Live_Face(app)
 
 
-def success_handle(output, status=200, mimetype='application/json'):
-    return Response(output, status=status, mimetype=mimetype)
+def success_handle(output, mimetype='application/json'):
+    return Response(output, mimetype=mimetype)
 
 
-def error_handle(error_message, status=500, mimetype='application/json'):
-    return Response(json.dumps({"error": {"message": error_message}}), status=status, mimetype=mimetype)
+def error_handle(code, error_message,  mimetype='application/json'):
+    return Response(json.dumps({"code": code, "message": error_message}),  mimetype=mimetype)
 
 
 def get_user_by_name(name):
@@ -130,6 +131,7 @@ def check_user_is_exist(name):
     if (len(check_exist)) >= 1:
         print("User is exist")
         return 1
+    return 0
 
 
 def check_image_contain_face(name, file, created):
@@ -159,7 +161,7 @@ def check_image_contain_face(name, file, created):
 
 @app.route('/api/add_user', methods=['POST'])
 def add_user():
-    output = json.dumps({"success": True})
+    output = json.dumps({"code": 1})
     created1 = int(time.time())
     file1 = request.files['file']
     name = request.form['name']
@@ -168,11 +170,11 @@ def add_user():
     file2 = request.files['file2']
 
     created3 = int(time.time())
-    # file3 = request.files['file3']
+    file3 = request.files['file3']
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
-        return error_handle("User is exist, you should change username")
+        return error_handle(2, "User is exist, you should change username")
 
     print('Check file is image', check_request_containt_image_file(request.files))
     print('request file', request.files)
@@ -180,10 +182,10 @@ def add_user():
     flag_check = check_request_containt_image_file(request.files)
     if(flag_check == 1):
         print("Not file in request")
-        return error_handle("Not file in request")
+        return error_handle(10, "Not file in request")
     if(flag_check == 2):
         print("File extension is not allowed")
-        return error_handle("We are only allow upload file with *.png , *.jpg")
+        return error_handle(10, "We are only allow upload file with *.png , *.jpg")
 
     print("Information of that face", name)
 
@@ -192,14 +194,14 @@ def add_user():
 
     flag_check_image_contain_face, filename_change1 = check_image_contain_face(name, file1, created1)
     flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, file2, created2)
-    # flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
+    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
 
     if flag_check_image_contain_face == 1:
-        return error_handle("Not found face in first image, try other images")
+        return error_handle(1, "Not found face in first image, try other images")
     if flag_check_image_contain_face2 == 1:
-        return error_handle("Not found face in second image, try other images")
-    # if flag_check_image_contain_face3 == 1:
-    #     return error_handle("Not found face in third image, try other images")
+        return error_handle(1, "Not found face in second image, try other images")
+    if flag_check_image_contain_face3 == 1:
+        return error_handle(1, "Not found face in third image, try other images")
 
     try:
 
@@ -212,22 +214,23 @@ def add_user():
 
         face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change1, created1])
         face_id2 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change2, created2])
-        # face_id3 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change3, created3])
+        face_id3 = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change3, created3])
 
         print("face has been saved")
-        # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
-        #              {"id": face_id2, "file_name": filename_change2, "created": created2},
-        #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
         face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
-                     {"id": face_id2, "file_name": filename_change2, "created": created2}]
-
+                     {"id": face_id2, "file_name": filename_change2, "created": created2},
+                     {"id": face_id3, "file_name": filename_change3, "created": created3}]
+        # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
+        #              {"id": face_id2, "file_name": filename_change2, "created": created2}]
+        dict = {"code": 0, "face_data": face_data}
         # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-        return_output = json.dumps(face_data)
+        # return_output = json.dumps(face_data)
+        return_output = json.dumps(dict)
 
         return(success_handle(return_output))
     except Exception as e:
         print(e)
-        return error_handle("ERRORRRRRRRRRRRR")
+        return error_handle(10, "ERRORRRRRRRRRRRR")
     return success_handle(output)
 
 
@@ -262,7 +265,7 @@ def add_url_user():
     created1 = int(time.time())
     created2 = created1+1
     created3 = created1+2
-    output = json.dumps({"success": True})
+    output = json.dumps({"code": 1})
     name = request.form['name']
     url1 = request.form['file']
     url2 = request.form['file2']
@@ -271,14 +274,14 @@ def add_url_user():
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
-        return error_handle("User is exist, you should change username")
+        return error_handle(2, "User is exist, you should change username")
 
     if check_url_is_image(url1) == 1:
-        return error_handle("URL isn't image")
+        return error_handle(10, "URL isn't image")
     if check_url_is_image(url2) == 1:
-        return error_handle("URL isn't image")
+        return error_handle(10, "URL isn't image")
     if check_url_is_image(url3) == 1:
-        return error_handle("URL isn't image")
+        return error_handle(10, "URL isn't image")
 
     if os.path.exists(path.join(app.config['trained'], name)) == False:
         os.mkdir(path.join(app.config['trained'], name))
@@ -288,11 +291,11 @@ def add_url_user():
     flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
 
     if flag_check_image_contain_face_add_url == 1:
-        return error_handle("Not found face in first image, try other images")
+        return error_handle(1, "Not found face in first image, try other images")
     if flag_check_image_contain_face_add_url2 == 1:
-        return error_handle("Not found face in second image, try other images")
+        return error_handle(1, "Not found face in second image, try other images")
     if flag_check_image_contain_face_add_url3 == 1:
-        return error_handle("Not found face in third image, try other images")
+        return error_handle(1, "Not found face in third image, try other images")
 
     try:
 
@@ -313,7 +316,8 @@ def add_url_user():
                      {"id": face_id3, "file_name": filename3, "created": created3}]
 
         # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-        return_output = json.dumps(face_data)
+        dict = {"code": 0, "face_data": face_data}
+        return_output = json.dumps(dict)
         return(success_handle(return_output))
 
     except Exception as e:
@@ -342,11 +346,11 @@ def user_profile():
         try:
             remove_path_image(name)
             delete_user_by_name(name)
-            return success_handle(json.dumps({"deleted": True}))
+            return success_handle(json.dumps({"code": 3, "deleted": True}))
 
         except Exception as e:
             print(e)
-            return error_handle("Not found result in database or not found image")
+            return error_handle(4, "Not found result in database or not found image")
 
 
 # route for not found path image in storage
@@ -365,7 +369,7 @@ def users_not_path():
     if request.method == 'DELETE':
         try:
             delete_user_by_name(name)
-            return success_handle(json.dumps({"deleted": True}))
+            return success_handle(json.dumps({"code": 1, "deleted": True}))
 
         except Exception as e:
             print(e)
@@ -376,25 +380,33 @@ def users_not_path():
 # router for recognize a unknown face
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
-    output = json.dumps({"success": True})
+    output = json.dumps({"code": 1})
     # get file from request
     file = request.files['file']
 
     # get name in form data
     name = request.form['name']
+    created = int(time.time())
+
+    check_exist = check_user_is_exist(name)
+    if check_exist == 0:
+        return error_handle(4, "Not found image of account in database")
 
     # check file is image
     flag_check = check_request_containt_image_file(request.files)
     if(flag_check == 1):
         print("Not file in request")
-        return error_handle("Not file in request")
+        return error_handle(10,"Not file in request")
     if(flag_check == 2):
         print("File extension is not allowed")
-        return error_handle("We are only allow upload file with *.png , *.jpg")
+        return error_handle(10,"We are only allow upload file with *.png , *.jpg")
+
+    if os.path.exists(path.join(app.config['unknown'], name)) == False:
+        os.mkdir(path.join(app.config['unknown'], name))
 
     print("Information of that image", name)
     filename = secure_filename(file.filename)
-    unknown_storage = path.join(app.config['storage'], 'unknown')
+    unknown_storage = path.join(app.config['storage'], 'unknown', name)
     unknown_image_path = path.join(unknown_storage, filename)
     file.save(unknown_image_path)
     print("File is allowed and will be saved in ", unknown_storage)
@@ -409,22 +421,22 @@ def recognize():
     except Exception as e:
         print(e)
         os.remove(unknown_image_path)
-        return error_handle("Not found face in an image, try other images")
+        return error_handle(1,"Not found face in an image, try other images")
 
     try:
         # compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
         output = app.face.recognize(name, unknown_image_path)
 
-        os.remove(unknown_image_path)
-        return success_handle(output)
+        # os.remove(unknown_image_path)
+        return success_handle(json.dumps(output))
         # if compare_faces == True:
         #     return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
         # else:
         #     return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
     except Exception as e:
-        os.remove(unknown_image_path)
+        # os.remove(unknown_image_path)
         print(e)
-        return error_handle("Not found image of account in database")
+        return error_handle("Not found image of account in database 2")
 
     return success_handle(output)
 
@@ -436,6 +448,15 @@ def live_recognition():
     output = json.dumps({"success": True})
     app.live_face.live_recognize()
     return success_handle(output)
+
+
+@app.route('/api/test_recognition', methods=['GET'])
+def test_recognize():
+    name = request.args.get('name')
+    list_dir = os.listdir(path.join(app.config['unknown'], name))
+    print(list_dir)
+
+    return error_handle("test")
 
 
 # Run the app

@@ -42,3 +42,9 @@ unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_loc
 # print(results)
 # print(face_recognition.compare_faces([tung_encoding], unknown_encoding, tolerance=0.56))
 # print("--- %s seconds ---" % (time.time() - start_time))
+
+
+        if(face_distance_average > 1.68):
+            output['conclusion'] = json.dumps({"message": "Invalid", "face_distance_average": face_distance_average})
+        else:
+            output['conclusion'] = json.dumps({"message": "Valid", "face_distance_average": face_distance_average})

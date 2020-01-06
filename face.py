@@ -26,8 +26,8 @@ class Live_Face:
 
         return None
 
-    def load_train_file_by_name(self, filename):
-        trained_storage = path.join(self.storage, 'trained')
+    def load_train_file_by_name(self, name, filename):
+        trained_storage = path.join(self.storage, 'trained', name)
         return path.join(trained_storage, filename)
 
     def load_unknown_file_by_name(self, filename):
@@ -65,7 +65,7 @@ class Live_Face:
             print('filename', filename)
             self.known_face_names.append(name)
 
-            face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
+            face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
             face_image_encoding = face_recognition.face_encodings(face_image)[0]
 
             index_key = len(self.known_encoding_faces)
@@ -100,7 +100,7 @@ class Live_Face:
     def live_recognize(self):
 
         # video_capture = cv2.VideoCapture(0)
-        URL = "http://192.168.1.10:8080/shot.jpg"
+        URL = "http://192.168.31.131:8000/shot.jpg"
 
         face_locations = []
         face_encodings = []

@@ -25,8 +25,9 @@ class Face:
 
     def recognize(self, name, unknown_image_path):
         known_path_image = self.get_path_image_in_db(name)
-
-        output = []
+        face_distance_average = 0
+        output = {}
+        output['compare'] = []
         for i in range(len(known_path_image)):
 
             known_image = face_recognition.load_image_file(known_path_image[i])
@@ -42,13 +43,28 @@ class Face:
             compare_faces = face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0]
             face_distance = face_recognition.face_distance([known_encoding], unknown_encoding)[0]
             print(type(compare_faces))
-
+            face_distance_average = face_distance_average+face_distance
             print(compare_faces)
             if compare_faces == True:
-                output.append(json.dumps({"message": "Valid", "face_distance": face_distance}))
+                # output['compare'].append(json.dumps({"message": "Valid", "face_distance": face_distance}))
+                output['compare'].append({"message": "Valid", "face_distance": face_distance})
+
                 # return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
             else:
-                output.append(json.dumps({"message": "Invalid", "face_distance": face_distance}))
+                # output['compare'].append(json.dumps({"message": "Invalid", "face_distance": face_distance}))
+                output['compare'].append({"message": "Invalid", "face_distance": face_distance})
+
                 # return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
         # return compare_faces, face_distance
+        face_distance_average = face_distance_average/3
+
+        if face_distance_average > 0.56:
+            output['face_distance_average'] = {"message": "Invalid", "face_distance_average": face_distance_average}
+            output['code'] = 5
+
+        else:
+            output['face_distance_average'] = {"message": "Valid", "face_distance_average": face_distance_average}
+            output['code'] = 6
+
+        print(output)
         return output
