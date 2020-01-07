@@ -394,7 +394,7 @@ def users_not_path():
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59'):
+    if(request.remote_addr != '125.235.4.59' or request.remote_addr != '27.72.57.124'):
         return error_handle(10, "Not allow")
 
     output = json.dumps({"code": 1})
