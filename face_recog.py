@@ -27,6 +27,7 @@ class Face:
         known_path_image = self.get_path_image_in_db(name)
         face_distance_average = 0
         output = {}
+        output['compare'] = []
         for i in range(len(known_path_image)):
 
             known_image = face_recognition.load_image_file(known_path_image[i])

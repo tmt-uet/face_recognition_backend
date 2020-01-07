@@ -159,10 +159,20 @@ def check_image_contain_face(name, file, created):
     return 2, filename_change
 
 
+def checkIP(ip):
+    IP = ['125.235.4.59', '127.0.0.1']
+    for ip_index in IP:
+        if ip == ip_index:
+            return 1
+    return 0
+
+
 @app.route('/api/add_user', methods=['POST'])
 def add_user():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
+    # if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
+    #     return error_handle(10, "Not allow")
+    if (checkIP(request.remote_addr) == 0):
         return error_handle(10, "Not allow")
 
     output = json.dumps({"code": 1})
@@ -269,7 +279,7 @@ def check_image_contain_face_add_url(name, url, created):
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
+    if (checkIP(request.remote_addr) == 0):
         return error_handle(10, "Not allow")
 
     created1 = int(time.time())
@@ -394,7 +404,7 @@ def users_not_path():
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
+    if (checkIP(request.remote_addr) == 0):
         return error_handle(10, "Not allow")
 
     output = json.dumps({"code": 1})
@@ -453,7 +463,7 @@ def recognize():
     except Exception as e:
         # os.remove(unknown_image_path)
         print(e)
-        return error_handle("Not found image of account in database 2")
+        return error_handle(10, "Not found image of account in database 2")
 
     return success_handle(output)
 
