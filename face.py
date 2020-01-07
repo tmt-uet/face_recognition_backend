@@ -100,7 +100,7 @@ class Live_Face:
     def live_recognize(self):
 
         # video_capture = cv2.VideoCapture(0)
-        URL = "http://192.168.31.131:8000/shot.jpg"
+        URL = "http://192.168.1.2:8000/shot.jpg"
 
         face_locations = []
         face_encodings = []

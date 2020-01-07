@@ -37,8 +37,9 @@ class Face:
             known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
             unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
             if(len(unknown_face_location) > 1):
-                output['code'] = 7
-                output['message'] = 'More than one person in front of webcam'
+                output['code'] = 2
+                output['message'] = 'Phát hiện gian lận'
+                output['status'] = 'CHEAT'
                 return output
             known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
             unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location)[0]
@@ -49,25 +50,25 @@ class Face:
             face_distance_average = face_distance_average+face_distance
             print(compare_faces)
             if compare_faces == True:
-                # output['compare'].append(json.dumps({"message": "Valid", "face_distance": face_distance}))
                 output['compare'].append({"message": "Valid", "face_distance": face_distance})
 
-                # return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
             else:
-                # output['compare'].append(json.dumps({"message": "Invalid", "face_distance": face_distance}))
                 output['compare'].append({"message": "Invalid", "face_distance": face_distance})
 
-                # return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
         # return compare_faces, face_distance
         face_distance_average = face_distance_average/3
 
         if face_distance_average > 0.56:
-            output['face_distance_average'] = {"message": "Invalid", "face_distance_average": face_distance_average}
-            output['code'] = 5
+            output['message'] = 'Khuôn mặt này không hợp lệ'
+            output['face_distance_average'] = face_distance_average
+            output['code'] = 2
+            output['status'] = 'INVALID'
 
         else:
-            output['face_distance_average'] = {"message": "Valid", "face_distance_average": face_distance_average}
-            output['code'] = 6
+            output['message'] = 'Khuôn mặt này  hợp lệ'
+            output['face_distance_average'] = face_distance_average
+            output['code'] = 1
+            output['status'] = 'VALID'
 
         print(output)
         return output

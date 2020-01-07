@@ -31,12 +31,12 @@ app.face = Face(app)
 # app.live_face = Live_Face(app)
 
 
-def success_handle(output, mimetype='application/json'):
-    return Response(output, mimetype=mimetype)
+def success_handle(code, error_message,  status, mimetype='application/json'):
+    return Response(json.dumps({"code": code, "message": error_message, "status": status}), mimetype=mimetype)
 
 
-def error_handle(code, error_message,  mimetype='application/json'):
-    return Response(json.dumps({"code": code, "message": error_message}),  mimetype=mimetype)
+def error_handle(code, error_message,  status, mimetype='application/json'):
+    return Response(json.dumps({"code": code, "message": error_message, "status": status}),  mimetype=mimetype)
 
 
 def get_user_by_name(name):
@@ -276,11 +276,55 @@ def check_image_contain_face_add_url(name, url, created):
     return 2, filename
 
 
+def check_url_user(url, created):
+    page = requests.get(url)
+    f_ext = os.path.splitext(url)[-1]
+    print(f_ext)
+    image_path = path.join(app.config['storage'], 'check_user', str(created)+str(f_ext))
+    with open(image_path, 'wb') as f:
+        f.write(page.content)
+
+    print("File is allowed and will be saved in ", image_path)
+
+    try:
+
+        face_image = face_recognition.load_image_file(image_path)
+        face_image_encoding = face_recognition.face_encodings(face_image)[0]
+        print("found face in image")
+
+    except:
+        os.remove(image_path)
+        # print("not found face in image")
+        # output = json.dumps({"error": "Not found face in an image, try other images"})
+        return 1
+
+    return 2
+
+
+@app.route('/api/check_user', methods=['POST'])
+def check_user():
+    created1 = int(time.time())
+    # name = request.form['name']
+    url1 = request.form['file']
+
+    if check_url_is_image(url1) == 1:
+        return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
+
+    if os.path.exists(path.join(app.config['storage'], 'check_user')) == False:
+        os.mkdir(path.join(app.config['storage'], 'check_user'))
+
+    if check_url_user(url1, created1) == 1:
+
+        return error_handle(2, "Không tìm thấy khuôn mặt, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    return success_handle(1, "Đã nhận được khuôn mặt", "VALID")
+
+
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
     print(json.dumps({'ip': request.remote_addr}))
     if (checkIP(request.remote_addr) == 0):
-        return error_handle(10, "Not allow")
+        return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
 
     created1 = int(time.time())
     created2 = created1+1
@@ -300,11 +344,11 @@ def add_url_user():
         # return error_handle(2, "User is exist, you should change username")
 
     if check_url_is_image(url1) == 1:
-        return error_handle(10, "URL isn't image")
+        return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
     if check_url_is_image(url2) == 1:
-        return error_handle(10, "URL isn't image")
+        return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
     if check_url_is_image(url3) == 1:
-        return error_handle(10, "URL isn't image")
+        return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
 
     if os.path.exists(path.join(app.config['trained'], name)) == False:
         os.mkdir(path.join(app.config['trained'], name))
@@ -314,11 +358,11 @@ def add_url_user():
     flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
 
     if flag_check_image_contain_face_add_url == 1:
-        return error_handle(1, "Not found face in first image, try other images")
+        return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
     if flag_check_image_contain_face_add_url2 == 1:
-        return error_handle(1, "Not found face in second image, try other images")
+        return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ hai, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
     if flag_check_image_contain_face_add_url3 == 1:
-        return error_handle(1, "Not found face in third image, try other images")
+        return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ ba, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
 
@@ -339,14 +383,13 @@ def add_url_user():
                      {"id": face_id3, "file_name": filename3, "created": created3}]
 
         # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-        dict = {"code": 0, "face_data": face_data}
-        return_output = json.dumps(dict)
-        return(success_handle(return_output))
+        # dict = {"code": 1, "face_data": face_data,"Đã nhận được khuôn mặt", "VALID"}
+        # return_output = json.dumps(dict)
+        return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
 
     except Exception as e:
         print(e)
-        return error_handle("ERRORRRRRRRRRRRR")
-    return success_handle(output)
+        return error_handle(0, "Lỗi khi thêm user vào DB", "ERROR_DB")
 
 # route for user profile
 # @app.route('/api/users/<string:name>', methods=['GET', 'DELETE'])
@@ -405,7 +448,7 @@ def users_not_path():
 def recognize():
     print(json.dumps({'ip': request.remote_addr}))
     if (checkIP(request.remote_addr) == 0):
-        return error_handle(10, "Not allow")
+        return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
 
     output = json.dumps({"code": 1})
     # get file from request
@@ -417,16 +460,16 @@ def recognize():
 
     check_exist = check_user_is_exist(name)
     if check_exist == 0:
-        return error_handle(4, "Not found image of account in database")
+        return error_handle(2, "Không tìm thấy ảnh người dùng trong DB", "NOT_FOUND_USERS")
 
     # check file is image
-    flag_check = check_request_containt_image_file(request.files)
-    if(flag_check == 1):
-        print("Not file in request")
-        return error_handle(10, "Not file in request")
-    if(flag_check == 2):
-        print("File extension is not allowed")
-        return error_handle(10, "We are only allow upload file with *.png , *.jpg")
+    # flag_check = check_request_containt_image_file(request.files)
+    # if(flag_check == 1):
+    #     print("Not file in request")
+    #     return error_handle(10, "Not file in request")
+    # if(flag_check == 2):
+    #     print("File extension is not allowed")
+    #     return error_handle(10, "We are only allow upload file with *.png , *.jpg")
 
     if os.path.exists(path.join(app.config['unknown'], name)) == False:
         os.mkdir(path.join(app.config['unknown'], name))
@@ -448,7 +491,7 @@ def recognize():
     except Exception as e:
         print(e)
         os.remove(unknown_image_path)
-        return error_handle(1, "Not found face in an image, try other images")
+        return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
         # compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
@@ -463,9 +506,9 @@ def recognize():
     except Exception as e:
         # os.remove(unknown_image_path)
         print(e)
-        return error_handle(10, "Not found image of account in database 2")
+        return error_handle(2, "Không tìm thấy ảnh người dùng trong DB", "NOT_FOUND_USERS")
 
-    return success_handle(output)
+    return success_handle(1, "Hợp lệ", "VALID")
 
 
 @app.route('/api/live_recognition', methods=['POST'])
