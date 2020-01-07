@@ -162,7 +162,7 @@ def check_image_contain_face(name, file, created):
 @app.route('/api/add_user', methods=['POST'])
 def add_user():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59'):
+    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
         return error_handle(10, "Not allow")
 
     output = json.dumps({"code": 1})
@@ -269,7 +269,7 @@ def check_image_contain_face_add_url(name, url, created):
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59'):
+    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
         return error_handle(10, "Not allow")
 
     created1 = int(time.time())
@@ -394,7 +394,7 @@ def users_not_path():
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
     print(json.dumps({'ip': request.remote_addr}))
-    if(request.remote_addr != '125.235.4.59' or request.remote_addr != '27.72.57.124'):
+    if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
         return error_handle(10, "Not allow")
 
     output = json.dumps({"code": 1})
