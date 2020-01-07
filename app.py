@@ -161,6 +161,10 @@ def check_image_contain_face(name, file, created):
 
 @app.route('/api/add_user', methods=['POST'])
 def add_user():
+    print(json.dumps({'ip': request.remote_addr}))
+    if(request.remote_addr != '125.235.4.59'):
+        return error_handle(10, "Not allow")
+
     output = json.dumps({"code": 1})
     created1 = int(time.time())
     file1 = request.files['file']
@@ -264,6 +268,10 @@ def check_image_contain_face_add_url(name, url, created):
 
 @app.route('/api/add_url_user', methods=['POST'])
 def add_url_user():
+    print(json.dumps({'ip': request.remote_addr}))
+    if(request.remote_addr != '125.235.4.59'):
+        return error_handle(10, "Not allow")
+
     created1 = int(time.time())
     created2 = created1+1
     created3 = created1+2
@@ -385,6 +393,10 @@ def users_not_path():
 # router for recognize a unknown face
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
+    print(json.dumps({'ip': request.remote_addr}))
+    if(request.remote_addr != '125.235.4.59'):
+        return error_handle(10, "Not allow")
+
     output = json.dumps({"code": 1})
     # get file from request
     file = request.files['file']
