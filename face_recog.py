@@ -27,7 +27,6 @@ class Face:
         known_path_image = self.get_path_image_in_db(name)
         face_distance_average = 0
         output = {}
-        output['compare'] = []
         for i in range(len(known_path_image)):
 
             known_image = face_recognition.load_image_file(known_path_image[i])
@@ -36,7 +35,10 @@ class Face:
 
             known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
             unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
-
+            if(len(unknown_face_location) > 1):
+                output['code'] = 7
+                output['message'] = 'More than one person in front of webcam'
+                return output
             known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
             unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location)[0]
 

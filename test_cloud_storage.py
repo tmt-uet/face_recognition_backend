@@ -107,14 +107,14 @@ def get_all_file():
             print(i)
 
 
-def upload_blob(bucket_name, bucket_folder, source_file_name, destination_blob_name):
+def upload_blob(bucket_name, bucket_folder, source_file_name, destination_blob_name,bucket):
     """Uploads a file to the bucket."""
     # bucket_name = "your-bucket-name"
     # source_file_name = "local/path/to/file"
     # destination_blob_name = "storage-object-name"
 
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
+    # storage_client = storage.Client()
+    # bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(bucket_folder+'/'+destination_blob_name)
 
     blob.upload_from_filename(source_file_name)
@@ -129,6 +129,7 @@ def upload_blob(bucket_name, bucket_folder, source_file_name, destination_blob_n
 def run():
     bucket_name = 'tung-recognition'
     storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
 
     path = '/home/tmt/Documents/face_recognition/my_app/storage/trained'
     files = os.listdir(path)
@@ -140,8 +141,12 @@ def run():
         for image_name in sub_dir:
             image_path = path+'/'+name+'/'+image_name
             print(image_path)
-
-            upload_blob(bucket_name, bucket_folder, image_path, image_name)
+            try:
+                upload_blob(bucket_name, bucket_folder, image_path, image_name,bucket)
+            except:
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(bucket_name)
+                upload_blob(bucket_name, bucket_folder, image_path, image_name,bucket)
 
 
 run()

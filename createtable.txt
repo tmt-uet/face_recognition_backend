@@ -24,3 +24,6 @@ CREATE TABLE `recognize2`.`users` (`id` INT NOT NULL AUTO_INCREMENT,`name` VARCH
 
 #delete bucket
 gsutil -m rm -r gs://tung-recognition
+
+#upload all folder to gg cloud
+gsutil -m cp -r trained gs://tung-recognition

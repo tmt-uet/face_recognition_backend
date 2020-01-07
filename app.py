@@ -174,7 +174,9 @@ def add_user():
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
-        return error_handle(2, "User is exist, you should change username")
+        remove_path_image(name)
+        delete_user_by_name(name)
+        # return error_handle(2, "User is exist, you should change username")
 
     print('Check file is image', check_request_containt_image_file(request.files))
     print('request file', request.files)
@@ -274,7 +276,10 @@ def add_url_user():
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
-        return error_handle(2, "User is exist, you should change username")
+        remove_path_image(name)
+        delete_user_by_name(name)
+        print("Delete user completely")
+        # return error_handle(2, "User is exist, you should change username")
 
     if check_url_is_image(url1) == 1:
         return error_handle(10, "URL isn't image")
@@ -396,10 +401,10 @@ def recognize():
     flag_check = check_request_containt_image_file(request.files)
     if(flag_check == 1):
         print("Not file in request")
-        return error_handle(10,"Not file in request")
+        return error_handle(10, "Not file in request")
     if(flag_check == 2):
         print("File extension is not allowed")
-        return error_handle(10,"We are only allow upload file with *.png , *.jpg")
+        return error_handle(10, "We are only allow upload file with *.png , *.jpg")
 
     if os.path.exists(path.join(app.config['unknown'], name)) == False:
         os.mkdir(path.join(app.config['unknown'], name))
@@ -421,7 +426,7 @@ def recognize():
     except Exception as e:
         print(e)
         os.remove(unknown_image_path)
-        return error_handle(1,"Not found face in an image, try other images")
+        return error_handle(1, "Not found face in an image, try other images")
 
     try:
         # compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
