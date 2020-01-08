@@ -494,15 +494,11 @@ def recognize():
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
-        # compare_faces, face_distance = app.face.recognize(name, unknown_image_path)
         output = app.face.recognize(name, unknown_image_path)
 
         # os.remove(unknown_image_path)
         return success_handle(output['code'], output['message'], output['status'])
-        # if compare_faces == True:
-        #     return success_handle(json.dumps({"message": "Valid", "face_distance": face_distance}))
-        # else:
-        #     return success_handle(json.dumps({"message": "Invalid", "face_distance": face_distance}))
+
     except Exception as e:
         # os.remove(unknown_image_path)
         print(e)
