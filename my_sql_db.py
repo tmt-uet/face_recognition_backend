@@ -27,7 +27,18 @@ class Database:
         cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`users` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(45) NOT NULL, `created` VARCHAR(45) NOT NULL, PRIMARY KEY(`id`))")
         cursor.close()
 
+    def init_db(self):
+        print("connection to MySQL", self.connection.is_connected())
+        if self.connection.is_connected() == False:
+            self.connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                passwd="",
+                database="recognize"
+            )
+
     def query(self, q, arg=()):
+        self.init_db()
         cursor = self.connection.cursor()
 
         cursor.execute(q, arg)
@@ -37,6 +48,7 @@ class Database:
         return results
 
     def insert(self, q, arg=()):
+        self.init_db()
         cursor = self.connection.cursor()
 
         cursor.execute(q, arg)
@@ -47,6 +59,7 @@ class Database:
         return result
 
     def select(self, q, arg=()):
+        self.init_db()
         cursor = self.connection.cursor()
         cursor.execute(q, arg)
         records = cursor.fetchall()
@@ -54,6 +67,7 @@ class Database:
         return records
 
     def delete(self, q, arg=()):
+        self.init_db()
         cursor = self.connection.cursor()
         result = cursor.execute(q, arg)
         self.connection.commit()
