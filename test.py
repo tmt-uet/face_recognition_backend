@@ -40,6 +40,8 @@ known_image = face_recognition.load_image_file('/home/tmt/Documents/face_recogni
 
 created1 = int(time.time())
 known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1, model='cnn')
+
+print(known_face_location)
 known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
 created2 = int(time.time())
 print(created2-created1)

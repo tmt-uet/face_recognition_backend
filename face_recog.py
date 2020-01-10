@@ -36,6 +36,8 @@ class Face:
 
             known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
             unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
+            # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=3, model='cnn')
+            # unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=3, model='cnn')
             if(len(unknown_face_location) > 1):
                 output['code'] = 2
                 output['message'] = 'Phát hiện gian lận'
@@ -43,9 +45,11 @@ class Face:
                 return output
             known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
             unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location)[0]
-
+            # known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location, num_jitters=2)[0]
+            # unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location, num_jitters=2)[0]
             compare_faces = face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.56)[0]
             face_distance = face_recognition.face_distance([known_encoding], unknown_encoding)[0]
+
             print(type(compare_faces))
             face_distance_average = face_distance_average+face_distance
             print(compare_faces)
