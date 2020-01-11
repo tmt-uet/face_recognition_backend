@@ -82,7 +82,10 @@ def remove_path_image(name):
     #     remove_path = path.join(app.config['storage'], 'trained', results[i][0])
     #     print(remove_path)
     #     os.remove(remove_path)
+
     shutil.rmtree(path.join(app.config['trained'], name))
+    if os.path.exists(path.join(app.config['unknown'], name)) == True:
+        shutil.rmtree(path.join(app.config['unknown'], name))
 
 
 def delete_user_by_name(name):
