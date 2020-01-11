@@ -16,6 +16,7 @@ import io
 import requests
 import shutil
 from flask_cors import CORS
+from numpy import save
 
 
 app = Flask(__name__)
@@ -139,19 +140,18 @@ def check_image_contain_face(name, file, created):
     trained_storage = path.join(app.config['trained'], name)
     filename_change = str(created)+str(filename)
     image_path = path.join(trained_storage, filename_change)
+    np_path = image_path+str('.npy')
     file.save(image_path)
     print("File is allowed and will be saved in ", trained_storage)
 
     face_image = face_recognition.load_image_file(image_path)
-    try:
-        face_image_encoding = face_recognition.face_encodings(face_image)[0]
-        print("found face in image")
-
-    except Exception as e:
-        print(e)
-
-        os.remove(image_path)
+    face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
+    if len(face_location) == 0:
         return 1, filename_change
+
+    face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location, num_jitters=1)[0]
+
+    save(np_path, face_image_encoding)
 
     return 2, filename_change
 
@@ -172,7 +172,6 @@ def add_user():
     if (checkIP(request.remote_addr) == 0):
         return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
 
-    output = json.dumps({"code": 1})
     created1 = int(time.time())
     file1 = request.files['file']
     name = request.form['name']
@@ -182,12 +181,13 @@ def add_user():
 
     created3 = int(time.time())
     file3 = request.files['file3']
+    if os.path.exists(path.join(app.config['trained'], name)) == False:
+        os.mkdir(path.join(app.config['trained'], name))
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
         remove_path_image(name)
         delete_user_by_name(name)
-        # return error_handle(2, "User is exist, you should change username")
 
     print('Check file is image', check_request_containt_image_file(request.files))
     print('request file', request.files)
@@ -202,18 +202,21 @@ def add_user():
 
     print("Information of that face", name)
 
-    if os.path.exists(path.join(app.config['trained'], name)) == False:
-        os.mkdir(path.join(app.config['trained'], name))
-
     flag_check_image_contain_face, filename_change1 = check_image_contain_face(name, file1, created1)
-    flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, file2, created2)
-    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
-
     if flag_check_image_contain_face == 1:
+        remove_path_image(name)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, file2, created2)
     if flag_check_image_contain_face2 == 1:
+        remove_path_image(name)
+
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ hai, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
     if flag_check_image_contain_face3 == 1:
+        remove_path_image(name)
+
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ ba, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
@@ -234,11 +237,6 @@ def add_user():
         #              {"id": face_id2, "file_name": filename_change2, "created": created2},
         #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
 
-        # dict = {"code": 0, "face_data": face_data}
-        # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-        # return_output = json.dumps(face_data)
-        # return_output = json.dumps(dict)
-
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
     except Exception as e:
         print(e)
@@ -256,16 +254,18 @@ def check_image_contain_face_add_url(name, url, created):
     with open(image_path, 'wb') as f:
         f.write(page.content)
 
+    np_path = image_path+str('.npy')
     print("File is allowed and will be saved in ", trained_storage)
 
     face_image = face_recognition.load_image_file(image_path)
-    try:
-        face_image_encoding = face_recognition.face_encodings(face_image)[0]
-        print("found face in image")
 
-    except:
-        os.remove(image_path)
+    face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
+    if len(face_location) == 0:
         return 1, filename
+
+    face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location, num_jitters=1)[0]
+
+    save(np_path, face_image_encoding)
 
     return 2, filename
 
@@ -280,14 +280,9 @@ def check_url_user(url, created):
 
     print("File is allowed and will be saved in ", image_path)
 
-    try:
-
-        face_image = face_recognition.load_image_file(image_path)
-        face_image_encoding = face_recognition.face_encodings(face_image)[0]
-        print("found face in image")
-
-    except:
-        os.remove(image_path)
+    face_image = face_recognition.load_image_file(image_path)
+    face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
+    if len(face_location) == 0:
         return 1
 
     return 2
@@ -327,6 +322,8 @@ def add_url_user():
     url2 = request.form['file2']
     url3 = request.form['file3']
     print("Information of that face", name)
+    if os.path.exists(path.join(app.config['trained'], name)) == False:
+        os.mkdir(path.join(app.config['trained'], name))
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
@@ -342,18 +339,19 @@ def add_url_user():
     if check_url_is_image(url3) == 1:
         return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
 
-    if os.path.exists(path.join(app.config['trained'], name)) == False:
-        os.mkdir(path.join(app.config['trained'], name))
-
     flag_check_image_contain_face_add_url, filename1 = check_image_contain_face_add_url(name, url1, created1)
-    flag_check_image_contain_face_add_url2, filename2 = check_image_contain_face_add_url(name, url2, created2)
-    flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
-
     if flag_check_image_contain_face_add_url == 1:
+        remove_path_image(name)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    flag_check_image_contain_face_add_url2, filename2 = check_image_contain_face_add_url(name, url2, created2)
     if flag_check_image_contain_face_add_url2 == 1:
+        remove_path_image(name)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ hai, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
     if flag_check_image_contain_face_add_url3 == 1:
+        remove_path_image(name)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ ba, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
@@ -374,9 +372,6 @@ def add_url_user():
         #              {"id": face_id2, "file_name": filename2, "created": created2},
         #              {"id": face_id3, "file_name": filename3, "created": created3}]
 
-        # return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-        # dict = {"code": 1, "face_data": face_data,"Đã nhận được khuôn mặt", "VALID"}
-        # return_output = json.dumps(dict)
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
 
     except Exception as e:
@@ -442,7 +437,6 @@ def recognize():
     if (checkIP(request.remote_addr) == 0):
         return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
 
-    output = json.dumps({"code": 1})
     # get file from request
     file = request.files['file']
 
@@ -475,15 +469,22 @@ def recognize():
 
     # encoding unknown image
     face_image = face_recognition.load_image_file(unknown_image_path)
-    try:
-        face_image_encoding = face_recognition.face_encodings(face_image)[0]
-        print("found face in image")
-
-        # return success_handle(output)
-    except Exception as e:
-        print(e)
+    face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
+    if len(face_location) == 0:
         os.remove(unknown_image_path)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
+
+    print("found face in image")
+    # face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location)[0]
+    # try:
+    #     face_image_encoding = face_recognition.face_encodings(face_image)[0]
+    #     print("found face in image")
+
+    #     # return success_handle(output)
+    # except Exception as e:
+    #     print(e)
+    #     os.remove(unknown_image_path)
+    #     return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
         output = app.face.recognize(name, unknown_image_path)

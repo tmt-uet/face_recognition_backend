@@ -26,9 +26,8 @@ import time
 
 # print("check exist", check_exist)
 
-<<<<<<< HEAD
 shutil.rmtree('/home/tmt/Documents/face/collection/Agent 1')
-=======
+
 
 created1 = int(time.time())
 
@@ -57,7 +56,6 @@ list_tuple = convert_to_list_tuple(bounding_box)
 print("list tuple", list_tuple)
 
 
-
 known_image = face_recognition.load_image_file('/home/tmt/Documents/face/collection/Cong Anh/53491942_1224175431066305_4033200567001022464_n.jpg')
 
 created1 = int(time.time())
@@ -71,4 +69,3 @@ known_encoding = face_recognition.face_encodings(known_image, known_face_locatio
 # crop_img = img[known_face_location[0][0]:known_face_location[0][2], known_face_location[0][3]:known_face_location[0][1]]
 # cv2.imshow("cropped", crop_img)
 # cv2.waitKey(0)
->>>>>>> 9bba61a0e4b4cf8dc8e0033ebd10b28f5cee0bfc

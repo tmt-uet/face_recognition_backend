@@ -3,6 +3,7 @@ from os import path
 import numpy as np
 import requests
 from flask import Flask, json
+from numpy import load
 
 
 class Face:
@@ -12,29 +13,30 @@ class Face:
 
     def get_path_image_in_db(self, name):
         # print(name)
-        path_image = []
+        path_np = []
         results = self.db.select(
             'SELECT users.id, users.name, users.created, faces.id, faces.user_id, faces.filename,faces.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.name = %s',
             [name])
 
         for i in range(len(results)):
             image_name = results[i][5]
-            path_image.append(path.join(self.storage, 'trained', name, image_name))
+            np_name = image_name+str('.npy')
+            path_np.append(path.join(self.storage, 'trained', name, np_name))
 
-        return path_image
+        return path_np
 
     def recognize(self, name, unknown_image_path):
-        known_path_image = self.get_path_image_in_db(name)
+        known_path_np = self.get_path_image_in_db(name)
         face_distance_average = 0
         output = {}
         output['compare'] = []
-        for i in range(len(known_path_image)):
+        for i in range(len(known_path_np)):
 
-            known_image = face_recognition.load_image_file(known_path_image[i])
-            print(known_path_image[i])
+            # known_image = face_recognition.load_image_file(known_path_np[i])
+            print(known_path_np[i])
             unknown_image = face_recognition.load_image_file(unknown_image_path)
 
-            known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
+            # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
             unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
             # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=3, model='cnn')
             # unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=3, model='cnn')
@@ -43,7 +45,8 @@ class Face:
                 output['message'] = 'Phát hiện gian lận'
                 output['status'] = 'CHEAT'
                 return output
-            known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
+            known_encoding = load(known_path_np[i])
+            # known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
             unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location)[0]
             # known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location, num_jitters=2)[0]
             # unknown_encoding = face_recognition.face_encodings(unknown_image, known_face_locations=unknown_face_location, num_jitters=2)[0]
