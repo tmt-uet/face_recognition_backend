@@ -38,6 +38,7 @@ class Face:
 
             # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
             unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
+            # print(unknown_face_location)
             # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=3, model='cnn')
             # unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=3, model='cnn')
             if(len(unknown_face_location) > 1):
