@@ -18,6 +18,7 @@ class Face:
         self.known_encoding_faces2 = []
         self.load_all()
         self.gpu_index = None
+        self.cpu_index = None
         self.init_index()
 
     def init_index(self):
@@ -26,14 +27,15 @@ class Face:
 
         print("number of GPUs:", ngpus)
 
-        cpu_index = faiss.IndexFlatL2(d)
+        self.cpu_index = faiss.IndexFlatL2(d)
+        self.cpu_index.add(self.known_encoding_faces2)
 
-        self.gpu_index = faiss.index_cpu_to_all_gpus(  # build the index
-            cpu_index
-        )
+        # self.gpu_index = faiss.index_cpu_to_all_gpus(  # build the index
+        #     cpu_index
+        # )
 
-        self.gpu_index.add(self.known_encoding_faces2)              # add vectors to the index
-        print('index', self.gpu_index.ntotal)
+        # self.gpu_index.add(self.known_encoding_faces2)              # add vectors to the index
+        # print('index', self.gpu_index.ntotal)
 
     def load_user_by_index_key(self, index_key=0):
 
@@ -100,7 +102,7 @@ class Face:
 
         # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1)
         unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=1)
-        # print(unknown_face_location)ạ
+        # print(unknown_face_location)ạconda create --name my_env python=3
         # known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=3, model='cnn')
         # unknown_face_location = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=3, model='cnn')
         if(len(unknown_face_location) > 1):
@@ -114,7 +116,8 @@ class Face:
         unknown_encoding_faiss = np.reshape(unknown_encoding, (1, 128))
         unknown_encoding_faiss = unknown_encoding_faiss.astype(np.float32)
         k = 2
-        D, I = self.gpu_index.search(unknown_encoding_faiss, k)
+        # D, I = self.gpu_index.search(unknown_encoding_faiss, k)
+        D, I = self.cpu_index.search(unknown_encoding_faiss, k)
         best_match_index = I[0][0]
         print('best_match_index', best_match_index)
         unknow_name = self.known_face_names[best_match_index]
