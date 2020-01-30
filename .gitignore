@@ -1,5 +1,8 @@
 env
 __pycache__/
 *.py[cod]
-storage
+storage/check_user/
+storage/model/
+storage/trained/
+storage/unknown/
 optical-carrier-262904-5a9b32e70b49.json

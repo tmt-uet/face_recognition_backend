@@ -1,7 +1,7 @@
 import face_recognition
 from os import path
 import numpy as np
-from flask import Flask, json
+/from flask import Flask, json
 from numpy import load
 import faiss
 
@@ -90,6 +90,45 @@ class Face:
         self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
         self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
         print(self.known_encoding_faces2.shape)
+
+    def update_model(self):
+        print("First Work")
+        # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
+        results = self.db.select(
+            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created  FROM users LEFT JOIN faces ON faces.user_id = users.id')
+        for row in results:
+            id = row[0]
+            user_id = row[1]
+            filename = row[2]
+            created = row[3]
+            name = row[5]
+            face = {
+                "id": row[0],
+                "user_id": user_id,
+                "filename": filename,
+                "created": created
+            }
+            self.faces.append(face)
+            print('name ', name)
+            print('filename', filename)
+            self.known_face_names.append(name)
+
+            face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
+            face_image_encoding = face_recognition.face_encodings(face_image)[0]
+
+            index_key = len(self.known_encoding_faces)
+
+            self.known_encoding_faces.append(face_image_encoding)
+
+            index_key_string = str(index_key)
+            self.face_user_keys[index_key_string] = user_id
+
+        self.known_encoding_faces2 = self.known_encoding_faces
+        self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
+        self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
+        self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
+        
+
 
         # print(row)
     def recognize2(self, name, unknown_image_path):
