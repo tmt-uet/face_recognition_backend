@@ -31,7 +31,7 @@ class Face:
         self.cpu_index.add(self.known_encoding_faces2)
 
         # self.gpu_index = faiss.index_cpu_to_all_gpus(  # build the index
-        #     cpu_index
+        #     self.cpu_index
         # )
 
         # self.gpu_index.add(self.known_encoding_faces2)              # add vectors to the index
