@@ -8,8 +8,6 @@ from face_recog import Face
 import face_recognition
 import mysql.connector
 from face import Live_Face
-# from gw_utility.logging import Logging
-# import Image
 import urllib
 from urllib.request import urlopen
 import io
@@ -18,6 +16,8 @@ import shutil
 from flask_cors import CORS
 from numpy import save
 
+from mtcnn import MTCNN
+import cv2
 
 app = Flask(__name__)
 CORS(app)
@@ -74,22 +74,21 @@ def get_user_by_name(name):
 
 
 def remove_path_image(name):
-    # user_id = app.db.select('SELECT id from users WHERE name= %s', [name])[0][0]
+    # shutil.rmtree(path.join(app.config['trained'], name))
+    folder_name = path.join(app.config['trained'], name)
+    file_list = [f for f in os.listdir(folder_name)]
+    for f in file_list:
+        os.remove(os.path.join(folder_name, f))
 
-    # results = app.db.select('SELECT filename FROM faces WHERE faces.user_id= %s', [user_id])
-    # print("errrrrrrrrrrrrroorrrrrrrrrrrrrrrrr")
-    # for i in range(len(results)):
-    #     remove_path = path.join(app.config['storage'], 'trained', results[i][0])
-    #     print(remove_path)
-    #     os.remove(remove_path)
-
-    shutil.rmtree(path.join(app.config['trained'], name))
     if os.path.exists(path.join(app.config['unknown'], name)) == True:
-        shutil.rmtree(path.join(app.config['unknown'], name))
+        # shutil.rmtree(path.join(app.config['unknown'], name))
+        folder_name_unknown = path.join(app.config['unknown'], name)
+        file_list = [f for f in os.listdir(folder_name_unknown)]
+        for f in file_list:
+            os.remove(os.path.join(folder_name_unknown, f))
 
 
 def delete_user_by_name(name):
-    # print(name)
     user_id = app.db.select('SELECT id from users WHERE name= %s', [name])[0][0]
     print(user_id)
     app.db.delete('DELETE FROM faces WHERE faces.user_id = %s', [user_id])
@@ -137,6 +136,29 @@ def check_user_is_exist(name):
     return 0
 
 
+def checkIP(ip):
+    IP = ['125.235.4.59', '127.0.0.1']
+    for ip_index in IP:
+        if ip == ip_index:
+            return 1
+    return 0
+
+
+def extract_face_from_image(image_path):
+    img = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+
+    result = app.detector.detect_faces(img)
+    bounding_box = result[0]['box']
+    list_tuple = []
+    # convert_tuple = (bounding_box[0], bounding_box[1]+bounding_box[3], bounding_box[0]+bounding_box[2], bounding_box[1])
+    convert_tuple = (bounding_box[1], bounding_box[0]+bounding_box[2], bounding_box[1]+bounding_box[3], bounding_box[0])
+    list_tuple.append(convert_tuple)
+    return list_tuple
+    # print('boundinggggggggggggggggggggggg', result)
+    # crop_img = img[bounding_box[0]:bounding_box[0]+bounding_box[2], bounding_box[1]:bounding_box[1]+bounding_box[3]]
+    # cv2.imwrite(image_path, crop_img)
+
+
 def check_image_contain_face(name, file, created):
     # print("Information of that face", name)
     filename = secure_filename(file.filename)
@@ -144,27 +166,23 @@ def check_image_contain_face(name, file, created):
     filename_change = str(created)+str(filename)
     image_path = path.join(trained_storage, filename_change)
     np_path = image_path+str('.npy')
+    # file.save(path.join(app.config['trained'], filename_change))
+    print('image_path', image_path)
     file.save(image_path)
     print("File is allowed and will be saved in ", trained_storage)
+    # face_path = str('face')+image_path
+    # list_tuple = extract_face_from_image(image_path)
 
     face_image = face_recognition.load_image_file(image_path)
     face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
     if len(face_location) == 0:
         return 1, filename_change
 
-    face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location, num_jitters=1)[0]
+    face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location)[0]
 
     save(np_path, face_image_encoding)
 
     return 2, filename_change
-
-
-def checkIP(ip):
-    IP = ['125.235.4.59', '127.0.0.1']
-    for ip_index in IP:
-        if ip == ip_index:
-            return 1
-    return 0
 
 
 @app.route('/api/add_user', methods=['POST'])
@@ -181,16 +199,19 @@ def add_user():
 
     created2 = int(time.time())
     file2 = request.files['file2']
-
     created3 = int(time.time())
     file3 = request.files['file3']
-    if os.path.exists(path.join(app.config['trained'], name)) == False:
-        os.mkdir(path.join(app.config['trained'], name))
+    # if os.path.exists(path.join(app.config['trained'], name)) == False:
+    #     print('check dir', os.path.exists(path.join(app.config['trained'], name)))
+    #     os.mkdir(path.join(app.config['trained'], name))
 
     check_exist = check_user_is_exist(name)
     if check_exist == 1:
         remove_path_image(name)
         delete_user_by_name(name)
+    else:
+        if os.path.exists(path.join(app.config['trained'], name)) == False:
+            os.mkdir(path.join(app.config['trained'], name))
 
     print('Check file is image', check_request_containt_image_file(request.files))
     print('request file', request.files)
@@ -239,7 +260,7 @@ def add_user():
         # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
         #              {"id": face_id2, "file_name": filename_change2, "created": created2},
         #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
-
+        app.face.load_all()
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
     except Exception as e:
         print(e)
@@ -248,7 +269,6 @@ def add_user():
 
 
 def check_image_contain_face_add_url(name, url, created):
-
     page = requests.get(url)
     f_ext = os.path.splitext(url)[-1]
     trained_storage = path.join(app.config['trained'], name)
@@ -440,10 +460,10 @@ def recognize():
     if (checkIP(request.remote_addr) == 0):
         return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
 
-    # get file from request
+    # get file from requestcrop_img
     file = request.files['file']
 
-    # get name in form data
+    # get name in form datacrop_img
     name = request.form['name']
     created = int(time.time())
 
@@ -490,7 +510,7 @@ def recognize():
     #     return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
-        output = app.face.recognize(name, unknown_image_path)
+        output = app.face.recognize2(name, unknown_image_path)
 
         # os.remove(unknown_image_path)
         return success_handle(output['code'], output['message'], output['status'])

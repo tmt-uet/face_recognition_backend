@@ -43,13 +43,15 @@ known_face_location = face_recognition.face_locations(known_image, number_of_tim
 
 print(known_face_location)
 known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
+print(type(known_encoding))
+print(known_encoding.shape)
 created2 = int(time.time())
 print(created2-created1)
 
-known_image2 = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/Tung/1578372281beauty_20191009001401.jpg')
+# known_image2 = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/Tung/1578372281beauty_20191009001401.jpg')
 
-created3 = int(time.time())
-known_face_location2 = face_recognition.face_locations(known_image2, number_of_times_to_upsample=1, model='cnn')
-known_encoding2 = face_recognition.face_encodings(known_image, known_face_locations=known_face_location2)[0]
-created4 = int(time.time())
-print(created4-created3)
+# created3 = int(time.time())
+# known_face_location2 = face_recognition.face_locations(known_image2, number_of_times_to_upsample=1, model='cnn')
+# known_encoding2 = face_recognition.face_encodings(known_image, known_face_locations=known_face_location2)[0]
+# created4 = int(time.time())
+# print(created4-created3)
