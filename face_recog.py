@@ -3,22 +3,25 @@ from numpy import load
 import face_recognition
 from os import path
 import numpy as np
-/from flask import Flask, json
+from flask import Flask, json
+from numpy import save
+from numpy import load
 
 
 class Face:
     def __init__(self, app):
         self.storage = app.config["storage"]
+        self.model = app.config['model']
         self.db = app.db
         self.faces = []  # storage all faces in caches array of face object
         self.known_encoding_faces = []  # faces data for recognition
         self.face_user_keys = {}
         self.known_face_names = []
         self.known_encoding_faces2 = []
-        self.load_all()
+        # self.load_all()
         self.gpu_index = None
         self.cpu_index = None
-        self.init_index()
+        # self.init_index()
 
     def init_index(self):
         d = 128
@@ -64,32 +67,38 @@ class Face:
             filename = row[2]
             created = row[3]
             name = row[5]
-            face = {
-                "id": row[0],
-                "user_id": user_id,
-                "filename": filename,
-                "created": created
-            }
-            self.faces.append(face)
+            # face = {
+            #     "id": row[0],
+            #     "user_id": user_id,
+            #     "filename": filename,
+            #     "created": created
+            # }
+            # self.faces.append(face)
             print('name ', name)
             print('filename', filename)
             self.known_face_names.append(name)
 
-            face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
-            face_image_encoding = face_recognition.face_encodings(face_image)[0]
+            # face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
+            # face_image_encoding = face_recognition.face_encodings(face_image)[0]
 
-            index_key = len(self.known_encoding_faces)
+        #     path_np = self.load_train_file_by_name(name, filename)+str('.npy')
+        #     face_image_encoding = load(path_np)
 
-            self.known_encoding_faces.append(face_image_encoding)
+        #     index_key = len(self.known_encoding_faces)
 
-            index_key_string = str(index_key)
-            self.face_user_keys[index_key_string] = user_id
+        #     self.known_encoding_faces.append(face_image_encoding)
 
-        self.known_encoding_faces2 = self.known_encoding_faces
-        self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
-        self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
-        self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
+        #     index_key_string = str(index_key)
+        #     self.face_user_keys[index_key_string] = user_id
+
+        # self.known_encoding_faces2 = self.known_encoding_faces
+        # self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
+        # self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
+        # self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
+        # print(self.known_encoding_faces2.shape)
+        self.known_encoding_faces2 = np.load(path.join(self.model, 'model.npy'))
         print(self.known_encoding_faces2.shape)
+        print('load model done')
 
     def update_model(self):
         print("First Work")
@@ -102,19 +111,22 @@ class Face:
             filename = row[2]
             created = row[3]
             name = row[5]
-            face = {
-                "id": row[0],
-                "user_id": user_id,
-                "filename": filename,
-                "created": created
-            }
-            self.faces.append(face)
-            print('name ', name)
-            print('filename', filename)
-            self.known_face_names.append(name)
+            # face = {
+            #     "id": row[0],
+            #     "user_id": user_id,
+            #     "filename": filename,
+            #     "created": created
+            # }
+            # self.faces.append(face)
+            # print('name ', name)
+            # print('filename', filename)
+            # self.known_face_names.append(name)
 
-            face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
-            face_image_encoding = face_recognition.face_encodings(face_image)[0]
+            # face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
+            # face_image_encoding = face_recognition.face_encodings(face_image)[0]
+
+            path_np = self.load_train_file_by_name(name, filename)+str('.npy')
+            face_image_encoding = load(path_np)
 
             index_key = len(self.known_encoding_faces)
 
@@ -127,6 +139,11 @@ class Face:
         self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
         self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
         self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
+
+        path_model = path.join(self.model, 'model.npy')
+
+        save(path_model, self.known_encoding_faces2)
+        print("saved model done")
 
         # print(row)
 

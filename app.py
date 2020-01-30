@@ -20,17 +20,42 @@ from mtcnn import MTCNN
 import cv2
 
 app = Flask(__name__)
-CORS(app)
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 
-app.config['file_allowed'] = ['image/png', 'image/jpeg']
-app.config['storage'] = path.join(getcwd(), 'storage')
-app.config['trained'] = path.join(getcwd(), 'storage', 'trained')
-app.config['unknown'] = path.join(getcwd(), 'storage', 'unknown')
-app.config['model'] = path.join(getcwd(), 'storage', 'model')
-app.db = Database()
-# app.face = Face(app)
+def init_app():
+    CORS(app)
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+    if os.path.exists(path.join(getcwd(), 'storage')) == False:
+        os.mkdir(path.join(getcwd(), 'storage'))
+
+    app.config['storage'] = path.join(getcwd(), 'storage')
+
+    if os.path.exists(path.join(app.config['storage'], 'trained')) == False:
+        os.mkdir(path.join(app.config['storage'], 'trained'))
+
+    if os.path.exists(path.join(app.config['storage'], 'unknown')) == False:
+        os.mkdir(path.join(app.config['storage'], 'unknown'))
+
+    if os.path.exists(path.join(app.config['storage'], 'model')) == False:
+        os.mkdir(path.join(app.config['storage'], 'model'))
+
+    if os.path.exists(path.join(app.config['storage'], 'check_user')) == False:
+        os.mkdir(path.join(app.config['storage'], 'check_user'))
+
+    app.config['file_allowed'] = ['image/png', 'image/jpeg']
+    app.config['trained'] = path.join(getcwd(), 'storage', 'trained')
+    app.config['unknown'] = path.join(getcwd(), 'storage', 'unknown')
+    app.config['model'] = path.join(getcwd(), 'storage', 'model')
+    app.db = Database()
+    app.face = Face(app)
+
+    print('init app done')
+
+
+init_app()
+
+
 # app.live_face = Live_Face(app)
 
 
@@ -262,7 +287,7 @@ def add_user():
         # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
         #              {"id": face_id2, "file_name": filename_change2, "created": created2},
         #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
-        # app.face.load_all()
+        app.face.update_model()
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
     except Exception as e:
         print(e)
@@ -396,7 +421,7 @@ def add_url_user():
         # face_data = [{"id": face_id, "file_name": filename1, "created": created1},
         #              {"id": face_id2, "file_name": filename2, "created": created2},
         #              {"id": face_id3, "file_name": filename3, "created": created3}]
-        # app.face.load_all()
+        app.face.update_model()
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
 
     except Exception as e:
@@ -512,7 +537,9 @@ def recognize():
     #     return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
-        app.face = Face(app)
+        # app.face = Face(app)
+        app.face.load_all()
+        app.face.init_index()
 
         output = app.face.recognize2(name, unknown_image_path)
 
