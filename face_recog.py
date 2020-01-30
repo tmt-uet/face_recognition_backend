@@ -1,9 +1,9 @@
+import faiss
+from numpy import load
 import face_recognition
 from os import path
 import numpy as np
 /from flask import Flask, json
-from numpy import load
-import faiss
 
 
 class Face:
@@ -127,10 +127,9 @@ class Face:
         self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
         self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
         self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
-        
-
 
         # print(row)
+
     def recognize2(self, name, unknown_image_path):
         face_locations = []
         face_encodings = []
