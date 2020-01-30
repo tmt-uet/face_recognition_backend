@@ -1,7 +1,7 @@
 import face_recognition
 from os import path
 import numpy as np
-import requests
+# import requests
 from flask import Flask, json
 from numpy import load
 import faiss
