@@ -148,8 +148,10 @@ class Face:
 
         path_model = path.join(self.model, class_user, 'model.npy')
 
-        os.remove(path_model)
-        
+        if os.path.exists(path_model) == True:
+            # os.mkdir(path.join(self.model, class_user))
+            os.remove(path_model)
+
         save(path_model, self.known_encoding_faces2)
         print("saved model of class {} done".format(class_user))
         print("size of model", self.known_encoding_faces2.shape)
