@@ -15,7 +15,7 @@ class Face:
         self.model = app.config['model']
         self.db = app.db
         self.faces = []  # storage all faces in caches array of face object
-        self.known_encoding_faces = []  # faces data for recognition
+        # self.known_encoding_faces = []  # faces data for recognition
         self.face_user_keys = {}
         self.known_face_names = []
         self.known_encoding_faces2 = []
@@ -103,7 +103,7 @@ class Face:
 
     def update_model(self, class_user):
         print("First Work")
-        self.known_encoding_faces = []
+        self.known_encoding_faces = []          # avoid dulicate user so declare know encoding face
         # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
         results = self.db.select(
             'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.class = %s', [class_user])
