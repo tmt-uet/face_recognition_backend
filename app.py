@@ -100,23 +100,23 @@ def get_user_by_name(name):
     return None
 
 
-def remove_path_image(name):
+def remove_path_image(name, class_user):
     # shutil.rmtree(path.join(app.config['trained'], name))
-    folder_name = path.join(app.config['trained'], name)
+    folder_name = path.join(app.config['trained'], class_user, name)
     file_list = [f for f in os.listdir(folder_name)]
     for f in file_list:
         os.remove(os.path.join(folder_name, f))
 
-    if os.path.exists(path.join(app.config['unknown'], name)) == True:
+    if os.path.exists(path.join(app.config['unknown'], class_user, name)) == True:
         # shutil.rmtree(path.join(app.config['unknown'], name))
-        folder_name_unknown = path.join(app.config['unknown'], name)
+        folder_name_unknown = path.join(app.config['unknown'], class_user, name)
         file_list = [f for f in os.listdir(folder_name_unknown)]
         for f in file_list:
             os.remove(os.path.join(folder_name_unknown, f))
 
 
-def delete_user_by_name(name):
-    user_id = app.db.select('SELECT id from users WHERE name= %s', [name])[0][0]
+def delete_user_by_name(name, class_user):
+    user_id = app.db.select('SELECT id from users WHERE (name,class)= (%s,%s)', [name, class_user])[0][0]
     print(user_id)
     app.db.delete('DELETE FROM faces WHERE faces.user_id = %s', [user_id])
 
@@ -153,8 +153,8 @@ def homepage():
 # def identify():
 
 
-def check_user_is_exist(name):
-    check_exist = app.db.select('SELECT * from users WHERE name=%s', [name])
+def check_user_is_exist(name, class_user):
+    check_exist = app.db.select('SELECT * from users WHERE (name,class)=(%s,%s)', [name, class_user])
     print(check_exist)
 
     if (len(check_exist)) >= 1:
@@ -186,10 +186,10 @@ def extract_face_from_image(image_path):
     # cv2.imwrite(image_path, crop_img)
 
 
-def check_image_contain_face(name, file, created):
+def check_image_contain_face(name, class_user, file, created):
     # print("Information of that face", name)
     filename = secure_filename(file.filename)
-    trained_storage = path.join(app.config['trained'], name)
+    trained_storage = path.join(app.config['trained'], class_user, name)
     filename_change = str(created)+str(filename)
     image_path = path.join(trained_storage, filename_change)
     np_path = image_path+str('.npy')
@@ -222,6 +222,9 @@ def add_user():
     name = request.form['name']
     class_user = request.form['class']
 
+    if os.path.exists(path.join(app.config['trained'], class_user)) == False:
+        os.mkdir(path.join(app.config['trained'], class_user))
+
     created1 = int(time.time())
     file1 = request.files['file']
     created2 = int(time.time())
@@ -232,13 +235,14 @@ def add_user():
     #     print('check dir', os.path.exists(path.join(app.config['trained'], name)))
     #     os.mkdir(path.join(app.config['trained'], name))
 
-    check_exist = check_user_is_exist(name)
+    check_exist = check_user_is_exist(name, class_user)
     if check_exist == 1:
-        remove_path_image(name)
-        delete_user_by_name(name)
+        remove_path_image(name, class_user)
+        delete_user_by_name(name, class_user)
     else:
-        if os.path.exists(path.join(app.config['trained'], name)) == False:
-            os.mkdir(path.join(app.config['trained'], name))
+        if os.path.exists(path.join(app.config['trained'], class_user, name)) == False:
+            print("create dir")
+            os.mkdir(path.join(app.config['trained'], class_user, name))
 
     print('Check file is image', check_request_containt_image_file(request.files))
     print('request file', request.files)
@@ -253,20 +257,20 @@ def add_user():
 
     print("Information of that face", name)
 
-    flag_check_image_contain_face, filename_change1 = check_image_contain_face(name, file1, created1)
+    flag_check_image_contain_face, filename_change1 = check_image_contain_face(name, class_user, file1, created1)
     if flag_check_image_contain_face == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
-    flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, file2, created2)
+    flag_check_image_contain_face2, filename_change2 = check_image_contain_face(name, class_user, file2, created2)
     if flag_check_image_contain_face2 == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
 
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ hai, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
-    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, file3, created3)
+    flag_check_image_contain_face3, filename_change3 = check_image_contain_face(name, class_user, file3, created3)
     if flag_check_image_contain_face3 == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
 
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ ba, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
@@ -295,10 +299,10 @@ def add_user():
     # return success_handle(output)
 
 
-def check_image_contain_face_add_url(name, url, created):
+def check_image_contain_face_add_url(name, class_user, url, created):
     page = requests.get(url)
     f_ext = os.path.splitext(url)[-1]
-    trained_storage = path.join(app.config['trained'], name)
+    trained_storage = path.join(app.config['trained'], class_user, name)
     filename = str(created)+str(f_ext)
     image_path = path.join(trained_storage, filename)
     with open(image_path, 'wb') as f:
@@ -372,15 +376,22 @@ def add_url_user():
     url2 = request.form['file2']
     url3 = request.form['file3']
     print("Information of that face", name)
-    if os.path.exists(path.join(app.config['trained'], name)) == False:
-        os.mkdir(path.join(app.config['trained'], name))
 
-    check_exist = check_user_is_exist(name)
+    if os.path.exists(path.join(app.config['trained'], class_user)) == False:
+        os.mkdir(path.join(app.config['trained'], class_user))
+
+    # if os.path.exists(path.join(app.config['trained'], name)) == False:
+    #     os.mkdir(path.join(app.config['trained'], name))
+
+    check_exist = check_user_is_exist(name, class_user)
     if check_exist == 1:
-        remove_path_image(name)
-        delete_user_by_name(name)
+        remove_path_image(name, class_user)
+        delete_user_by_name(name, class_user)
         print("Delete user completely")
         # return error_handle(2, "User is exist, you should change username")
+    else:
+        if os.path.exists(path.join(app.config['trained'], class_user, name)) == False:
+            os.mkdir(path.join(app.config['trained'], class_user, name))
 
     if check_url_is_image(url1) == 1:
         return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
@@ -389,19 +400,19 @@ def add_url_user():
     if check_url_is_image(url3) == 1:
         return error_handle(2, "URL không chứa ảnh", "URL_INVALID")
 
-    flag_check_image_contain_face_add_url, filename1 = check_image_contain_face_add_url(name, url1, created1)
+    flag_check_image_contain_face_add_url, filename1 = check_image_contain_face_add_url(name, class_user, url1, created1)
     if flag_check_image_contain_face_add_url == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ nhất, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
-    flag_check_image_contain_face_add_url2, filename2 = check_image_contain_face_add_url(name, url2, created2)
+    flag_check_image_contain_face_add_url2, filename2 = check_image_contain_face_add_url(name, class_user, url2, created2)
     if flag_check_image_contain_face_add_url2 == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ hai, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
-    flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, url3, created3)
+    flag_check_image_contain_face_add_url3, filename3 = check_image_contain_face_add_url(name, class_user, url3, created3)
     if flag_check_image_contain_face_add_url3 == 1:
-        remove_path_image(name)
+        remove_path_image(name, class_user)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh thứ ba, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
@@ -433,13 +444,13 @@ def add_url_user():
 @app.route('/api/users', methods=['GET', 'DELETE'])
 def user_profile():
     name = request.args.get('name')
-
+    class_user = request.args.get('class')
     if request.method == 'GET':
         try:
 
             user = get_user_by_name(name)
             filename = user['faces'][0]['filename']
-            path_image = path.join(app.config['trained'], name, filename)
+            path_image = path.join(app.config['trained'], class_user, name, filename)
             return send_file(path_image, mimetype='image/jpg')
         except Exception as e:
             class_user
@@ -448,8 +459,8 @@ def user_profile():
 
     if request.method == 'DELETE':
         try:
-            remove_path_image(name)
-            delete_user_by_name(name)
+            remove_path_image(name, class_user)
+            delete_user_by_name(name, class_user)
             return success_handle(1, "Xóa user thành công", "SUCCESSFULLY")
 
         except Exception as e:
@@ -461,7 +472,7 @@ def user_profile():
 @app.route('/api/remove_if_not_in_storage', methods=['GET', 'DELETE'])
 def users_not_path():
     name = request.args.get('name')
-
+    class_user = request.args.get('class')
     if request.method == 'GET':
         try:
             user = get_user_by_name(name)
@@ -472,7 +483,7 @@ def users_not_path():
             return error_handle(4, "Không tìm thấy user trong DB", "USER_NOT_FOUND")
     if request.method == 'DELETE':
         try:
-            delete_user_by_name(name)
+            delete_user_by_name(name, class_user)
             return success_handle(1, "Xóa user thành công", "SUCCESSFULLY")
 
         except Exception as e:
@@ -496,9 +507,12 @@ def recognize():
     class_user = request.form['class']
     created = int(time.time())
 
-    check_exist = check_user_is_exist(name)
+    check_exist = check_user_is_exist(name, class_user)
     if check_exist == 0:
         return error_handle(2, "Không tìm thấy ảnh người dùng trong DB", "NOT_FOUND_USERS")
+
+    if os.path.exists(path.join(app.config['unknown'], class_user)) == False:
+        os.mkdir(path.join(app.config['unknown'], class_user))
 
     # check file is image
     # flag_check = check_request_containt_image_file(request.files)
@@ -509,12 +523,12 @@ def recognize():
     #     print("File extension is not allowed")
     #     return error_handle(10, "We are only allow upload file with *.png , *.jpg")
 
-    if os.path.exists(path.join(app.config['unknown'], name)) == False:
-        os.mkdir(path.join(app.config['unknown'], name))
+    if os.path.exists(path.join(app.config['unknown'], class_user, name)) == False:
+        os.mkdir(path.join(app.config['unknown'], class_user, name))
 
     print("Information of that image", name)
     filename = secure_filename(file.filename)
-    unknown_storage = path.join(app.config['storage'], 'unknown', name)
+    unknown_storage = path.join(app.config['storage'], 'unknown', class_user, name)
     unknown_image_path = path.join(unknown_storage, filename)
     file.save(unknown_image_path)
     print("File is allowed and will be saved in ", unknown_storage)

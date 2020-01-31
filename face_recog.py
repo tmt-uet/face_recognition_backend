@@ -49,8 +49,8 @@ class Face:
 
         return None
 
-    def load_train_file_by_name(self, name, filename):
-        trained_storage = path.join(self.storage, 'trained', name)
+    def load_train_file_by_name(self, name, class_user, filename):
+        trained_storage = path.join(self.storage, 'trained', class_user, name)
         return path.join(trained_storage, filename)
 
     def load_unknown_file_by_name(self, filename):
@@ -128,7 +128,7 @@ class Face:
             # face_image = face_recognition.load_image_file(self.load_train_file_by_name(name, filename))
             # face_image_encoding = face_recognition.face_encodings(face_image)[0]
 
-            path_np = self.load_train_file_by_name(name, filename)+str('.npy')
+            path_np = self.load_train_file_by_name(name, class_user, filename)+str('.npy')
             face_image_encoding = load(path_np)
 
             index_key = len(self.known_encoding_faces)
@@ -150,7 +150,7 @@ class Face:
 
         save(path_model, self.known_encoding_faces2)
         print("saved model of class {} done".format(class_user))
-
+        print("size of mode", self.known_encoding_faces2.shape)
         # print(row)
 
     def recognize2(self, name, unknown_face_location, unknown_face_image):
