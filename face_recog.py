@@ -103,6 +103,7 @@ class Face:
 
     def update_model(self, class_user):
         print("First Work")
+        self.known_encoding_faces = []
         # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
         results = self.db.select(
             'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.class = %s', [class_user])
@@ -131,12 +132,12 @@ class Face:
             path_np = self.load_train_file_by_name(name, class_user, filename)+str('.npy')
             face_image_encoding = load(path_np)
 
-            index_key = len(self.known_encoding_faces)
+            # index_key = len(self.known_encoding_faces)
 
             self.known_encoding_faces.append(face_image_encoding)
 
-            index_key_string = str(index_key)
-            self.face_user_keys[index_key_string] = user_id
+            # index_key_string = str(index_key)
+            # self.face_user_keys[index_key_string] = user_id
 
         self.known_encoding_faces2 = self.known_encoding_faces
         self.known_encoding_faces2 = np.asarray(self.known_encoding_faces2)
@@ -150,6 +151,7 @@ class Face:
 
         if os.path.exists(path_model) == True:
             # os.mkdir(path.join(self.model, class_user))
+            print("remove old model")
             os.remove(path_model)
 
         save(path_model, self.known_encoding_faces2)
