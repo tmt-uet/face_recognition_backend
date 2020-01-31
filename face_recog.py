@@ -106,7 +106,7 @@ class Face:
         # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
         results = self.db.select(
             'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.class = %s', [class_user])
-
+        print('number member in class', len(results))
         for row in results:
             id = row[0]
             user_id = row[1]
@@ -148,9 +148,11 @@ class Face:
 
         path_model = path.join(self.model, class_user, 'model.npy')
 
+        os.remove(path_model)
+        
         save(path_model, self.known_encoding_faces2)
         print("saved model of class {} done".format(class_user))
-        print("size of mode", self.known_encoding_faces2.shape)
+        print("size of model", self.known_encoding_faces2.shape)
         # print(row)
 
     def recognize2(self, name, unknown_face_location, unknown_face_image):
