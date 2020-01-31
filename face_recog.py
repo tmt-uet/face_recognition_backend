@@ -6,6 +6,7 @@ import numpy as np
 from flask import Flask, json
 from numpy import save
 from numpy import load
+import os
 
 
 class Face:
@@ -56,11 +57,11 @@ class Face:
         unknown_storage = path.join(self.storage, 'unknown')
         return path.join(unknown_storage, filename)
 
-    def load_all(self):
+    def load_all(self, class_user):
         print("First Work")
         # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
         results = self.db.select(
-            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created  FROM users LEFT JOIN faces ON faces.user_id = users.id')
+            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created  FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.class = %s', [class_user])
         for row in results:
             id = row[0]
             user_id = row[1]
@@ -96,21 +97,23 @@ class Face:
         # self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
         # self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
         # print(self.known_encoding_faces2.shape)
-        self.known_encoding_faces2 = np.load(path.join(self.model, 'model.npy'))
+        self.known_encoding_faces2 = np.load(path.join(self.model, class_user, 'model.npy'))
         print(self.known_encoding_faces2.shape)
-        print('load model done')
+        print('load model {} done'.format(class_user))
 
-    def update_model(self):
+    def update_model(self, class_user):
         print("First Work")
         # results = self.db.select('SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
         results = self.db.select(
-            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created  FROM users LEFT JOIN faces ON faces.user_id = users.id')
+            'SELECT faces.id, faces.user_id, faces.filename,faces.created, users.id, users.name, users.created FROM users LEFT JOIN faces ON faces.user_id = users.id WHERE users.class = %s', [class_user])
+
         for row in results:
             id = row[0]
             user_id = row[1]
             filename = row[2]
             created = row[3]
             name = row[5]
+            print(name)
             # face = {
             #     "id": row[0],
             #     "user_id": user_id,
@@ -140,10 +143,13 @@ class Face:
         self.known_encoding_faces2 = np.reshape(self.known_encoding_faces2, (len(self.known_encoding_faces), 128))
         self.known_encoding_faces2 = self.known_encoding_faces2.astype(np.float32)
 
-        path_model = path.join(self.model, 'model.npy')
+        if os.path.exists(path.join(self.model, class_user)) == False:
+            os.mkdir(path.join(self.model, class_user))
+
+        path_model = path.join(self.model, class_user, 'model.npy')
 
         save(path_model, self.known_encoding_faces2)
-        print("saved model done")
+        print("saved model of class {} done".format(class_user))
 
         # print(row)
 
@@ -159,8 +165,13 @@ class Face:
         best_match_index = I[0][0]
         print('best_match_index', best_match_index)
         unknow_name = self.known_face_names[best_match_index]
+        # print(self.known_encoding_faces2[best_match_index])
+
+        face_distance = face_recognition.face_distance([self.known_encoding_faces2[best_match_index]], unknown_encoding)[0]
+        print('face distance', face_distance)
+
         print('name', unknow_name)
-        if str(unknow_name) == str(name):
+        if str(unknow_name) == str(name) and face_distance < 0.4:
 
             output['name'] = unknow_name
             output['message'] = 'Khuôn mặt này  hợp lệ'

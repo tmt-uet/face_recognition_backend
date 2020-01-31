@@ -24,7 +24,8 @@ class Database:
         )
         cursor = self.connection.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`faces` (`id` INT NOT NULL AUTO_INCREMENT,`user_id` INT(11) NOT NULL,`filename` VARCHAR(500) NOT NULL,`created` VARCHAR(45) NOT NULL,PRIMARY KEY (`id`),UNIQUE INDEX `id_UNIQUE` (`id` ASC));")
-        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`users` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(45) NOT NULL, `created` VARCHAR(45) NOT NULL, PRIMARY KEY(`id`))")
+        cursor.execute("CREATE TABLE IF NOT EXISTS `recognize`.`users` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(45) NOT NULL,`class` VARCHAR(45) NOT NULL, `created` VARCHAR(45) NOT NULL, PRIMARY KEY(`id`))")
+        # cursor.execute("")
         cursor.close()
 
     def init_db(self):

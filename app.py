@@ -219,11 +219,11 @@ def add_user():
     #     return error_handle(10, "Not allow")
     if (checkIP(request.remote_addr) == 0):
         return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
+    name = request.form['name']
+    class_user = request.form['class']
 
     created1 = int(time.time())
     file1 = request.files['file']
-    name = request.form['name']
-
     created2 = int(time.time())
     file2 = request.files['file2']
     created3 = int(time.time())
@@ -276,7 +276,7 @@ def add_user():
 
         # save to our sqlite database.db
 
-        user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created1])
+        user_id = app.db.insert('INSERT INTO users(name, class,created) values(%s,%s,%s)', [name, class_user, created1])
         print("user has been saved")
 
         face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename_change1, created1])
@@ -287,7 +287,7 @@ def add_user():
         # face_data = [{"id": face_id, "file_name": filename_change1, "created": created1},
         #              {"id": face_id2, "file_name": filename_change2, "created": created2},
         #              {"id": face_id3, "file_name": filename_change3, "created": created3}]
-        app.face.update_model()
+        app.face.update_model(class_user)
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
     except Exception as e:
         print(e)
@@ -362,12 +362,12 @@ def add_url_user():
     print(json.dumps({'ip': request.remote_addr}))
     if (checkIP(request.remote_addr) == 0):
         return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
-
+    name = request.form['name']
+    class_user = request.form['class']
     created1 = int(time.time())
     created2 = created1+1
     created3 = created1+2
 
-    name = request.form['name']
     url1 = request.form['file']
     url2 = request.form['file2']
     url3 = request.form['file3']
@@ -410,7 +410,7 @@ def add_url_user():
 
         # save to our sqlite database.db
 
-        user_id = app.db.insert('INSERT INTO users(name, created) values(%s,%s)', [name, created1])
+        user_id = app.db.insert('INSERT INTO users(name, class,created) values(%s,%s,%s)', [name, class_user, created1])
         print("user has been saved")
 
         face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(%s,%s,%s)', [user_id, filename1, created1])
@@ -421,7 +421,7 @@ def add_url_user():
         # face_data = [{"id": face_id, "file_name": filename1, "created": created1},
         #              {"id": face_id2, "file_name": filename2, "created": created2},
         #              {"id": face_id3, "file_name": filename3, "created": created3}]
-        app.face.update_model()
+        app.face.update_model(class_user)
         return(success_handle(1, "Đã nhận được khuôn mặt", "VALID"))
 
     except Exception as e:
@@ -442,6 +442,7 @@ def user_profile():
             path_image = path.join(app.config['trained'], name, filename)
             return send_file(path_image, mimetype='image/jpg')
         except Exception as e:
+            class_user
             print(e)
             return error_handle(4, "Không tìm thấy user trong DB", "USER_NOT_FOUND")
 
@@ -492,6 +493,7 @@ def recognize():
 
     # get name in form datacrop_img
     name = request.form['name']
+    class_user = request.form['class']
     created = int(time.time())
 
     check_exist = check_user_is_exist(name)
@@ -530,7 +532,7 @@ def recognize():
     print("found face in image")
 
     try:
-        app.face.load_all()
+        app.face.load_all(class_user)
         app.face.init_index()
 
         output = app.face.recognize2(name, unknown_face_location, unknown_face_image)
