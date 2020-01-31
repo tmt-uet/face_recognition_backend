@@ -518,30 +518,22 @@ def recognize():
     print("File is allowed and will be saved in ", unknown_storage)
 
     # encoding unknown image
-    face_image = face_recognition.load_image_file(unknown_image_path)
-    face_location = face_recognition.face_locations(face_image, number_of_times_to_upsample=1)
-    if len(face_location) == 0:
+    unknown_face_image = face_recognition.load_image_file(unknown_image_path)
+    unknown_face_location = face_recognition.face_locations(unknown_face_image, number_of_times_to_upsample=1)
+    if len(unknown_face_location) == 0:
         os.remove(unknown_image_path)
         return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
+    if(len(unknown_face_location) > 1):
+        print(unknown_face_location)
+        return success_handle(2, 'Phát hiện gian lận', 'CHEAT')
     print("found face in image")
-    # face_image_encoding = face_recognition.face_encodings(face_image, known_face_locations=face_location)[0]
-    # try:
-    #     face_image_encoding = face_recognition.face_encodings(face_image)[0]
-    #     print("found face in image")
-
-    #     # return success_handle(output)
-    # except Exception as e:
-    #     print(e)
-    #     os.remove(unknown_image_path)
-    #     return error_handle(2, "Không tìm thấy khuôn mặt trong bức ảnh, xin vui lòng thử lại ảnh khác", "NOT_FOUND_FACE")
 
     try:
-        # app.face = Face(app)
         app.face.load_all()
         app.face.init_index()
 
-        output = app.face.recognize2(name, unknown_image_path)
+        output = app.face.recognize2(name, unknown_face_location, unknown_face_image)
 
         # os.remove(unknown_image_path)
         return success_handle(output['code'], output['message'], output['status'])
