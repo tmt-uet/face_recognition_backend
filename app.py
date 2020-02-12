@@ -30,6 +30,7 @@ def init_app():
         os.mkdir(path.join(getcwd(), 'storage'))
 
     app.config['storage'] = path.join(getcwd(), 'storage')
+    app.config['capture_image'] = path.join(getcwd(), 'capture_image')
 
     if os.path.exists(path.join(app.config['storage'], 'trained')) == False:
         os.mkdir(path.join(app.config['storage'], 'trained'))
@@ -567,6 +568,59 @@ def live_recognition():
     app.live_face = Live_Face(app)
 
     app.live_face.live_recognize()
+    return success_handle(1, "Test thành công", "TEST_SUCCESS")
+
+
+@app.route('/api/add_user2', methods=['POST'])
+def add_user2():
+    print(json.dumps({'ip': request.remote_addr}))
+    # if(request.remote_addr != '125.235.4.59' and request.remote_addr != '127.0.0.1'):
+    #     return error_handle(10, "Not allow")
+    if (checkIP(request.remote_addr) == 0):
+        return error_handle(2, "IP này không được phép gửi request", "BLOCK_REQUEST")
+    name = request.form['name']
+    class_user = request.form['class']
+
+    if os.path.exists(path.join(app.config['trained'], class_user)) == False:
+        os.mkdir(path.join(app.config['trained'], class_user))
+
+    # created1 = int(time.time())
+    # file1 = request.files['file']
+    # created2 = int(time.time())
+    # file2 = request.files['file2']
+    # created3 = int(time.time())
+    # file3 = request.files['file3']
+    # if os.path.exists(path.join(app.config['trained'], name)) == False:
+    #     print('check dir', os.path.exists(path.join(app.config['trained'], name)))
+    #     os.mkdir(path.join(app.config['trained'], name))
+
+    # check_exist = check_user_is_exist(name, class_user)
+    # if check_exist == 1:
+    #     remove_path_image(name, class_user)
+    #     delete_user_by_name(name, class_user)
+    # else:
+    #     if os.path.exists('/home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/'+class_user+'/'+name+'/') == False:
+    #         print("create dir")
+    #         os.mkdir('/home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/'+class_user+'/'+name+'/')
+    # else:
+    if os.path.exists(path.join(app.config['capture_image'], class_user)) == False:
+        print("create dir")
+        print('pathhhhhhhhhhhhhh', path.join(app.config['capture_image'], class_user))
+        # os.mkdir('/home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/3/abc')
+        os.mkdir(path.join(app.config['capture_image'], class_user))
+    if os.path.exists(path.join(app.config['capture_image'], class_user, name)) == False:
+        os.mkdir(path.join(app.config['capture_image'], class_user, name))
+
+    os.system('python server.py {} {}'.format(class_user, name))
+    in_dir = path.join(app.config['capture_image'], class_user)
+    out_dir = path.join(app.config['capture_image'], class_user+'processed')
+    if os.path.exists(out_dir) == False:
+        os.mkdir(out_dir)
+
+    os.system('python src/align_dataset_mtcnn.py {} {}'.format(in_dir, out_dir))
+    # os.system('python server.py')
+    print("success")
+    # os.system('python client.py')
     return success_handle(1, "Test thành công", "TEST_SUCCESS")
 
 

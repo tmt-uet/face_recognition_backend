@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import time
-
+import pickle
 # img = Image.open('/home/tmt/Documents/face_recognition/my_app/storage/trained/Tung/1578372281beauty_20191009001401.jpg').convert('LA')
 # img.save('/home/tmt/Documents/face_recognition/my_app/storage/trained/1578372281beauty_20191009001401.png')
 
@@ -36,17 +36,17 @@ import cv2
 # plt.savefig('lena_greyscale.png')
 # plt.show()
 
-known_image = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/1578372281beauty_20191009001401.jpg')
+# known_image = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/1578372281beauty_20191009001401.jpg')
 
-created1 = int(time.time())
-known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1, model='cnn')
+# created1 = int(time.time())
+# known_face_location = face_recognition.face_locations(known_image, number_of_times_to_upsample=1, model='cnn')
 
-print(known_face_location)
-known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
-print(type(known_encoding))
-print(known_encoding.shape)
-created2 = int(time.time())
-print(created2-created1)
+# print(known_face_location)
+# known_encoding = face_recognition.face_encodings(known_image, known_face_locations=known_face_location)[0]
+# print(type(known_encoding))
+# print(known_encoding.shape)
+# created2 = int(time.time())
+# print(created2-created1)
 
 # known_image2 = face_recognition.load_image_file('/home/tmt/Documents/face_recognition/my_app/storage/trained/Tung/1578372281beauty_20191009001401.jpg')
 
@@ -55,3 +55,9 @@ print(created2-created1)
 # known_encoding2 = face_recognition.face_encodings(known_image, known_face_locations=known_face_location2)[0]
 # created4 = int(time.time())
 # print(created4-created3)
+
+
+
+with open('/home/tmt/Documents/face_recognition/face_recognition_backend/Models/facemodel.pkl', 'rb') as infile:
+    (emb_array, label_person) = pickle.load(infile)
+print(label_person)
