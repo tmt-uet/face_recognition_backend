@@ -53,11 +53,13 @@ def main(args):
         frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
         frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
         img_counter += 1
-        if img_counter % 5 == 0:
-            cv2.imwrite(path_image+"/frame %d.jpg" % img_counter, frame)
-            print("write frame %d" % img_counter)
+        if img_counter >= 50:
+            print('start get image')
+            if img_counter % 5 == 0:
+                cv2.imwrite(path_image+"/frame %d.jpg" % img_counter, frame)
+                print("write frame %d" % img_counter)
         # If image taken reach 100, stop taking video
-        if img_counter >= 150:
+        if img_counter >= 200:
             print("Successfully Captured")
             break
         cv2.imshow('ImageWindow', frame)

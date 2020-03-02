@@ -49,7 +49,7 @@ def main():
     FACTOR = 0.709
     IMAGE_SIZE = 182
     INPUT_IMAGE_SIZE = 160
-    CLASSIFIER_PATH = 'Models/facemodel.pkl'
+    CLASSIFIER_PATH = 'Models/facemodel2.pkl'
     VIDEO_PATH = args.path
     FACENET_MODEL_PATH = 'Models/20180402-114759.pb'
 
@@ -89,13 +89,13 @@ def main():
 
             # Lay hinh anh tu file video
             cap = cv2.VideoCapture(VIDEO_PATH)
-
+            count_frame = 0
             while (cap.isOpened()):
                 # Doc tung frame
-                # ret, frame = cap.read()
-                img_resp = requests.get(URL)
-                img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-                frame = cv2.imdecode(img_arr, -1)
+                ret, frame = cap.read()
+                # img_resp = requests.get(URL)
+                # img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+                # frame = cv2.imdecode(img_arr, -1)
 
                 # Phat hien khuon mat, tra ve vi tri trong bounding_boxes
                 bounding_boxes, _ = align.detect_face.detect_face(frame, MINSIZE, pnet, rnet, onet, THRESHOLD, FACTOR)
@@ -111,13 +111,23 @@ def main():
                             bb[i][1] = det[i][1]
                             bb[i][2] = det[i][2]
                             bb[i][3] = det[i][3]
-
+                            print('bb1', bb[i][3]-bb[i][1])
+                            print('frame shape', frame.shape[0])
+                            print('bb2', (bb[i][3]-bb[i][1])/frame.shape[0])
                             # Cat phan khuon mat tim duoc
                             cropped = frame[bb[i][1]:bb[i][3], bb[i][0]:bb[i][2], :]
                             scaled = cv2.resize(cropped, (INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE),
                                                 interpolation=cv2.INTER_CUBIC)
                             scaled = facenet.prewhiten(scaled)
+                            print('count frame', count_frame)
+                            output_image = '/home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/find_face/'+str(count_frame)+'.jpg'
+                            print('output_image', output_image)
+                            cv2.imwrite(output_image, cropped)
+                            count_frame += 1
+
                             scaled_reshape = scaled.reshape(-1, INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE, 3)
+                            print('######################')
+                            print('scale shape', scaled_reshape.shape)
                             feed_dict = {images_placeholder: scaled_reshape, phase_train_placeholder: False}
                             emb_array = sess.run(embeddings, feed_dict=feed_dict)
                             print(emb_array.shape)
@@ -159,9 +169,9 @@ def main():
                             # Viet text len tren frame
                             cv2.putText(frame, name, (text_x, text_y), cv2.FONT_HERSHEY_COMPLEX_SMALL,
                                         1, (255, 255, 255), thickness=1, lineType=2)
-                            cv2.putText(frame, str(round(best_class_probabilities[0], 3)), (text_x, text_y + 17),
-                                        cv2.FONT_HERSHEY_COMPLEX_SMALL,
-                                        1, (255, 255, 255), thickness=1, lineType=2)
+                            # cv2.putText(frame, str(round(best_class_probabilities[0], 3)), (text_x, text_y + 17),
+                            #             cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                            #             1, (255, 255, 255), thickness=1, lineType=2)
                             # person_detected[best_name] += 1
                 except:
                     pass

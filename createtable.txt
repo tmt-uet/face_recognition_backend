@@ -32,8 +32,10 @@ gsutil -m cp -r trained gs://tung-recognition
 
 
 #run script
-python src/align_dataset_mtcnn.py  /home/tmt/Documents/face_recognition/face_recognition_backend/storage/trained/abc123 /home/tmt/Documents/face_recognition/face_recognition_backend/storage/trained/processed --image_size 160 --margin 32  --random_order --gpu_memory_fraction 0.25
+python src/align_dataset_mtcnn.py  /home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/4 /home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/4processed --image_size 160 --margin 32  --random_order --gpu_memory_fraction 0.25
 
 /home/tmt/Documents/face_recognition/face_recognition_backend/storage/trained
 
 python src/classifier.py TRAIN /home/tmt/Documents/face_recognition/face_recognition_backend/storage/trained/processed Models/20180402-114759.pb Models/facemodel.pkl --batch_size 1000
+
+python src/align_dataset_retina.py  /home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/4 /home/tmt/Documents/face_recognition/face_recognition_backend/capture_image/4processed --image_size 112 --margin 32  --random_order --gpu_memory_fraction 0.25

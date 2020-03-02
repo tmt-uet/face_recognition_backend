@@ -612,15 +612,22 @@ def add_user2():
         os.mkdir(path.join(app.config['capture_image'], class_user, name))
 
     os.system('python server.py {} {}'.format(class_user, name))
-    in_dir = path.join(app.config['capture_image'], class_user)
-    out_dir = path.join(app.config['capture_image'], class_user+'processed')
-    if os.path.exists(out_dir) == False:
-        os.mkdir(out_dir)
+    
+    # in_dir = path.join(app.config['capture_image'], class_user)
+    # out_dir = path.join(app.config['capture_image'], class_user+'processed')
+    # if os.path.exists(out_dir) == False:
+    #     os.mkdir(out_dir)
 
-    os.system('python src/align_dataset_mtcnn.py {} {}'.format(in_dir, out_dir))
-    # os.system('python server.py')
-    print("success")
-    # os.system('python client.py')
+    # print('-------------------------align--------------------')
+    # os.system('python src/align_dataset_mtcnn.py {} {}'.format(in_dir, out_dir))
+    # # os.system('python server.py')
+    # print("success")
+    # print('----------------------train----------------------')
+    # os.system('python src/classifier.py TRAIN {} Models/20180402-114759.pb Models/facemodel.pkl --batch_size 1000'.format(out_dir))
+    # print('-----------------------test--------------------')
+    # os.system('python src/classifier.py CLASSIFY {} Models/20180402-114759.pb Models/facemodel.pkl --batch_size 1000'.format(out_dir))
+
+    # # os.system('python client.py')
     return success_handle(1, "Test thành công", "TEST_SUCCESS")
 
 

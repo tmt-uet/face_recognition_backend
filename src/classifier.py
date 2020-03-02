@@ -68,7 +68,7 @@ def main(args):
 
             print('dataset', dataset)
 
-            paths, labels,label_person = facenet.get_image_paths_and_labels(dataset)
+            paths, labels, label_person = facenet.get_image_paths_and_labels(dataset)
             print('paths', paths)
             print('labels', labels)
             print('person', label_person)
@@ -94,10 +94,10 @@ def main(args):
             for i in range(nrof_batches_per_epoch):
                 start_index = i*args.batch_size
                 end_index = min((i+1)*args.batch_size, nrof_images)
-                print('start index',start_index)
-                print('end index',end_index)
+                print('start index', start_index)
+                print('end index', end_index)
                 paths_batch = paths[start_index:end_index]
-                print('paths_batch',paths_batch)
+                print('paths_batch', paths_batch)
                 images = facenet.load_data(
                     paths_batch, False, False, args.image_size)
                 feed_dict = {images_placeholder: images,
@@ -111,25 +111,20 @@ def main(args):
             if (args.mode == 'TRAIN'):
                 # Train classifier
                 print('Training classifier')
-                path_model = '/home/tmt/Documents/face_recognition/face_recognition_backend/storage/model/face_net.npy'
-                save(path_model, emb_array)
-                with open('/home/tmt/Documents/face_recognition/face_recognition_backend/Models/facemodel.pkl', 'wb') as outfile:
+                with open('/home/tmt/Documents/face_recognition/face_recognition_backend/Models/facemodel2.pkl', 'wb') as outfile:
                     pickle.dump((emb_array, label_person), outfile)
 
+                model = SVC(kernel='linear', probability=True)
+                model.fit(emb_array, labels)
 
-
-
-                # model = SVC(kernel='linear', probability=True)
-                # model.fit(emb_array, labels)
-
-                # # Create a list of class names
-                # class_names = [cls.name.replace('_', ' ') for cls in dataset]
-                # print('class name', class_names)
-                # # Saving classifier model
-                # with open(classifier_filename_exp, 'wb') as outfile:
-                #     pickle.dump((model, class_names), outfile)
-                # print('Saved classifier model to file "%s"' %
-                #       classifier_filename_exp)
+                # Create a list of class names
+                class_names = [cls.name.replace('_', ' ') for cls in dataset]
+                print('class name', class_names)
+                # Saving classifier model
+                with open(classifier_filename_exp, 'wb') as outfile:
+                    pickle.dump((model, class_names), outfile)
+                print('Saved classifier model to file "%s"' %
+                      classifier_filename_exp)
 
             elif (args.mode == 'CLASSIFY'):
                 # Classify images
