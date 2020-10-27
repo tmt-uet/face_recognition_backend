@@ -41,7 +41,7 @@ coloredlogs==10.0
 colorhash==1.0.2
 ConfigArgParse==0.15.1
 contextlib2==0.6.0.post1
-cryptography==2.8
+cryptography==3.2
 cycler==0.10.0
 Cython==0.29.14
 cytoolz==0.10.1
