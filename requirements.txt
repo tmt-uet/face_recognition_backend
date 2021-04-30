@@ -253,7 +253,7 @@ requests-toolbelt==0.9.1
 rfc3986==1.3.2
 rocketchat-API==0.6.35
 rope==0.14.0
-rsa==4.0
+rsa==4.7
 ruamel.yaml==0.15.100
 s3transfer==0.2.1
 sacrebleu==1.4.2
