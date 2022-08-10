@@ -153,7 +153,7 @@ multidict==4.5.2
 multipledispatch==0.6.0
 multiprocess==0.70.9
 mysql-connector-python==8.0.19
-nbconvert==5.6.0
+nbconvert==6.3.0
 nbformat==4.4.0
 networkx==2.4
 nltk==3.4.5
