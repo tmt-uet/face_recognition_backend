@@ -219,7 +219,7 @@ pyparsing==2.4.4
 pypng==0.0.20
 pyrsistent==0.15.4
 PySocks==1.7.1
-pyspark==2.4.3
+pyspark==3.2.2
 pytest==5.3.2
 pytest-arraydiff==0.3
 pytest-astropy==0.7.0
