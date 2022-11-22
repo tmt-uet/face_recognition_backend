@@ -182,7 +182,7 @@ pep8==1.7.1
 pexpect==4.7.0
 pickleshare==0.7.5
 pika==1.0.1
-Pillow==6.2.1
+Pillow==9.3.0
 pluggy==0.13.1
 ply==3.11
 portalocker==1.5.1
